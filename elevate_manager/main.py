@@ -1,11 +1,13 @@
+# SPDX-FileCopyrightText: 2022 Magenta ApS <https://magenta.dk>
+# SPDX-License-Identifier: MPL-2.0
 from typing import Any
 
 from fastapi import APIRouter
 from fastapi import FastAPI
-
-from fastramqpi.main import FastRAMQPI
-from ramqp.mo import MORouter
-from ramqp.mo.models import PayloadType, ObjectType
+from fastramqpi.main import FastRAMQPI  # type: ignore
+from ramqp.mo import MORouter  # type: ignore
+from ramqp.mo.models import ObjectType  # type: ignore
+from ramqp.mo.models import PayloadType
 
 from .config import get_settings
 
@@ -34,8 +36,7 @@ def create_fastramqpi(**kwargs) -> FastRAMQPI:
     settings = get_settings()
 
     fastramqpi = FastRAMQPI(
-        application_name="os2mo-manager-elevator",
-        settings=settings.fastramqpi
+        application_name="os2mo-manager-elevator", settings=settings.fastramqpi
     )
 
     amqpsystem = fastramqpi.get_amqpsystem()

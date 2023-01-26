@@ -266,6 +266,29 @@ doc = ["mdx-include (>=1.4.1,<2.0.0)", "mkdocs (>=1.1.2,<2.0.0)", "mkdocs-markdo
 test = ["anyio[trio] (>=3.2.1,<4.0.0)", "black (==22.10.0)", "coverage[toml] (>=6.5.0,<7.0)", "databases[sqlite] (>=0.3.2,<0.7.0)", "email-validator (>=1.1.1,<2.0.0)", "flask (>=1.1.2,<3.0.0)", "httpx (>=0.23.0,<0.24.0)", "isort (>=5.0.6,<6.0.0)", "mypy (==0.982)", "orjson (>=3.2.1,<4.0.0)", "passlib[bcrypt] (>=1.7.2,<2.0.0)", "peewee (>=3.13.3,<4.0.0)", "pytest (>=7.1.3,<8.0.0)", "python-jose[cryptography] (>=3.3.0,<4.0.0)", "python-multipart (>=0.0.5,<0.0.6)", "pyyaml (>=5.3.1,<7.0.0)", "ruff (==0.0.138)", "sqlalchemy (>=1.3.18,<=1.4.41)", "types-orjson (==3.6.2)", "types-ujson (==5.5.0)", "ujson (>=4.0.1,!=4.0.2,!=4.1.0,!=4.2.0,!=4.3.0,!=5.0.0,!=5.1.0,<6.0.0)"]
 
 [[package]]
+name = "fastramqpi"
+version = "1.3.1"
+description = "Rammearkitektur AMQP framework (FastAPI + RAMQP)"
+category = "main"
+optional = false
+python-versions = ">=3.10,<4.0"
+files = [
+    {file = "fastramqpi-1.3.1-py3-none-any.whl", hash = "sha256:321292bd822873b74b45895adc7a0eae20bd7149bb9beac49252aab4a08dbf88"},
+    {file = "fastramqpi-1.3.1.tar.gz", hash = "sha256:6ebd93eeda29478e9190755a1f739bf2068cc082c9b0353d1e5bc534f3b4400f"},
+]
+
+[package.dependencies]
+fastapi = ">=0.88.0,<0.89.0"
+gql = ">=3.4.0,<4.0.0"
+more-itertools = ">=9.0.0,<10.0.0"
+prometheus-fastapi-instrumentator = ">=5.9.1,<6.0.0"
+pydantic = ">=1.10.2,<2.0.0"
+ra-utils = ">=1.7.1,<2.0.0"
+raclients = ">=3.0.3,<4.0.0"
+ramqp = ">=6.6.2,<7.0.0"
+structlog = ">=22.3.0,<23.0.0"
+
+[[package]]
 name = "ghp-import"
 version = "2.1.0"
 description = "Copy your docs directly to the gh-pages branch."
@@ -758,6 +781,22 @@ files = [
 
 [package.extras]
 twisted = ["twisted"]
+
+[[package]]
+name = "prometheus-fastapi-instrumentator"
+version = "5.9.1"
+description = "Instrument your FastAPI with Prometheus metrics"
+category = "main"
+optional = false
+python-versions = ">=3.7.0,<4.0.0"
+files = [
+    {file = "prometheus-fastapi-instrumentator-5.9.1.tar.gz", hash = "sha256:3651a72f73359a28e8afb0d370ebe3774147323ee2285e21236b229ce79172fc"},
+    {file = "prometheus_fastapi_instrumentator-5.9.1-py3-none-any.whl", hash = "sha256:b5206ea9aa6975a0b07f3bf7376932b8a1b2983164b5abb04878e75ba336d9ed"},
+]
+
+[package.dependencies]
+fastapi = ">=0.38.1,<1.0.0"
+prometheus-client = ">=0.8.0,<1.0.0"
 
 [[package]]
 name = "pycparser"
@@ -1301,4 +1340,4 @@ testing = ["flake8 (<5)", "func-timeout", "jaraco.functools", "jaraco.itertools"
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "087551a5edc2df7a4dfcde756578b5d8e6b0e3ba5a90b69dde638c9746d4abc1"
+content-hash = "29dd3c5e3d1e1b598bb1515d71fd674789211d41ba5d1b07a9079cd273747d48"

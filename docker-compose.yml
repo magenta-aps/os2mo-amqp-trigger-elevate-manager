@@ -1,0 +1,13 @@
+version: "3.9"
+services:
+  elevator:
+    build: .
+    command: ["uvicorn", "--factory", "app.main:create_app", "--host", "0.0.0.0", "--reload"]
+    networks:
+      - os2mo_default
+    ports:
+      - "8000:8000"
+
+networks:
+  os2mo_default:
+    external: true

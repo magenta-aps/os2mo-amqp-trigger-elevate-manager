@@ -1,3 +1,7 @@
+<!--
+SPDX-FileCopyrightText: 2022 Magenta ApS <https://magenta.dk>
+SPDX-License-Identifier: MPL-2.0
+-->
 # OS2mo-amqp-trigger-elevate-manager
 
 OS2mo AMQP trigger receiver that elevates manager engagement according to manager level changes

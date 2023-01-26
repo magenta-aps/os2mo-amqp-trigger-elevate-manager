@@ -1,0 +1,15 @@
+[tool.poetry]
+name = "elevate-manager"
+version = "1.0.0"
+description = "OS2mo AMQP trigger receiver that elevates manager engagement according to manager level changes"
+authors = ["Andreas Kring <andreas@magenta.dk>"]
+readme = "README.md"
+packages = [{include = "elevate_manager"}]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

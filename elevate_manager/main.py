@@ -1,3 +1,5 @@
+from typing import Any
+
 from fastapi import APIRouter
 from fastapi import FastAPI
 
@@ -17,7 +19,8 @@ async def dummy() -> dict[str, str]:
 
 
 @amqp_router.register("*.*.*")
-async def listener(context: dict, payload: PayloadType) -> None:
+async def listener(context: dict, payload: PayloadType, **kwargs: Any) -> None:
+    print("HURRA")
     print(payload)
 
 

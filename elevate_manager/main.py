@@ -5,7 +5,7 @@ from fastapi import FastAPI
 
 from fastramqpi.main import FastRAMQPI
 from ramqp.mo import MORouter
-from ramqp.mo.models import PayloadType
+from ramqp.mo.models import PayloadType, ObjectType
 
 from .config import get_settings
 
@@ -22,6 +22,12 @@ async def dummy() -> dict[str, str]:
 async def listener(context: dict, payload: PayloadType, **kwargs: Any) -> None:
     print("HURRA")
     print(payload)
+    print(kwargs)
+
+    routing_key = kwargs["mo_routing_key"]
+
+    if routing_key.object_type == ObjectType.MANAGER:
+        print("Manager UUID", payload.object_uuid)
 
 
 def create_fastramqpi(**kwargs) -> FastRAMQPI:

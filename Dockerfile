@@ -23,7 +23,7 @@ COPY poetry.lock pyproject.toml ./
 RUN poetry install --no-root --only=main
 
 WORKDIR /opt/app
-COPY elevate-manager .
+COPY elevate_manager .
 WORKDIR /opt/
 CMD [ "uvicorn", "--factory", "app.main:create_app", "--host", "0.0.0.0" ]
 

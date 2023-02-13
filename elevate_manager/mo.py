@@ -1,7 +1,7 @@
 # Module containing GraphQL functions to interact with MO
 from uuid import UUID
 
-from raclients.graph.client import PersistentGraphQLClient
+from raclients.graph.client import PersistentGraphQLClient  # type: ignore
 
 from elevate_manager.config import Settings
 

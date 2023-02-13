@@ -1,7 +1,5 @@
 # Modul containing functions for handling the actual business logic
 # of the application
-
-
 # TODO: add argument which should be the same as the response type
 #       from mo.get_org_unit_levels
 # TODO: add return type

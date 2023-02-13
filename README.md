@@ -94,3 +94,20 @@ For open source projects, say how it is licensed.
 
 ## Project status
 If you have run out of energy or time for your project, put a note at the top of the README saying that development has slowed down or stopped completely. Someone may choose to fork your project or volunteer to step in as a maintainer or owner, allowing your project to keep going. You can also make an explicit request for maintainers.
+
+## Code Responsibilities
+
+* Configure and initialize AMQP listener app (main.py)
+* Listen for incoming AMQP events (main.py)
+* Create GraphQL client (mo.py)
+* Call MO (mo.py)
+* Convert responses to model instances (mo.py)
+* Define Quicktype generated model instances (models.py)
+* Set up logging (log.py)
+* Extract and compare the org_unit_levels from GQL payload (ou_levels.py)
+* Create GQL mutation payload (mo.py)
+* Send GQL mutation payload (mo.py)
+* Handle GQL mutation payload response (mo.py)
+* Exceptions
+* Get existing managers (mo.py)
+* Terminate any existing managers (mo.py)

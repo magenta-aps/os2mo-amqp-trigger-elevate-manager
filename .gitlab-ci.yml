@@ -11,7 +11,7 @@ variables:
   PYTEST_COV_FAIL_UNDER: 100
 
   PYTEST_EXTRA_FLAGS: "-n auto"
-  PRECOMMIT_USE_POETRY: "false"
+  PRECOMMIT_USE_POETRY: "true"
 
 stages:
   - lint

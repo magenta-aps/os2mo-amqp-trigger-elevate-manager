@@ -9,7 +9,7 @@ ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     POETRY_VIRTUALENVS_CREATE=false \
     POETRY_NO_INTERACTION=1
-RUN pip install --no-cache-dir poetry==1.2.2
+RUN pip install --no-cache-dir poetry==1.3.2
 
 
 # Install poetry in an isolated environment

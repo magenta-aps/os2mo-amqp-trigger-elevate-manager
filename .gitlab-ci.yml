@@ -55,7 +55,6 @@ variables:
 
 
 include:
-  - remote: 'https://git.magenta.dk/labs/salt-automation/.before-script-template.yml'
   - project: labs/salt-automation
     ref: master
     file:

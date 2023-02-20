@@ -20,7 +20,6 @@ repos:
     rev: v3.8.2
     hooks:
       - id: reorder-python-imports
-        args: [ "--application-directories=.:backend:tests" ]
 
   - repo: https://github.com/pycqa/flake8
     rev: 5.0.4

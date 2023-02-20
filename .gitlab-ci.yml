@@ -2,29 +2,34 @@
 # SPDX-License-Identifier: MPL-2.0
 
 stages:
+  - sync
   - lint
   - build
   - test
   - coverage
   - release
-  - deploy
 
 
 variables:
+  RELEASE_REGISTRY: docker.io
+  RELEASE_REGISTRY_IMAGE: index.docker.io/magentaaps/os2mo-amqp-trigger-engagement-elevator
+
   IMAGE_SHA: ${CI_REGISTRY_IMAGE}:${CI_COMMIT_SHA}
 
-  RELEASE_REGISTRY: docker.io
-  RELEASE_REGISTRY_IMAGE: index.docker.io/magentaaps/os2mo-manager-elevator
+  IMAGE_VERSION: ${RELEASE_REGISTRY_IMAGE}:${CI_COMMIT_TAG}
+  IMAGE_LATEST: ${RELEASE_REGISTRY_IMAGE}:latest
 
-  PYTEST_COV_MODULE: elevate_manager
-  PYTEST_COV_FAIL_UNDER: 0
+  PYTEST_COV_MODULE: elevate_engagement
+  PYTEST_COV_FAIL_UNDER: 100
 
   PRECOMMIT_USE_POETRY: "true"
   POETRY_VERSION: 1.3.1
 
 
+
 # Conditions
 #############
+# Global Conditions
 .if-default-branch-refs: &if-default-branch-refs
   if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
 
@@ -33,6 +38,35 @@ variables:
 
 .if-merge-request: &if-merge-request
   if: '$CI_MERGE_REQUEST_IID'
+
+.if-schedule: &if-schedule
+  if: '$CI_PIPELINE_SOURCE == "schedule"'
+
+
+
+# Sync Conditions
+#############
+.if-merge-request-labels-dont-interrupt: &if-merge-request-labels-dont-interrupt
+  if: "$CI_MERGE_REQUEST_LABELS =~ /Pipeline::Sync::Don't Interrupt/"
+
+# Review Conditions
+.if-merge-request-labels-run-review-app: &if-merge-request-labels-run-review-app
+  if: '$CI_MERGE_REQUEST_LABELS =~ /Pipeline::Review::Run Review App/'
+
+
+include:
+  - remote: 'https://git.magenta.dk/labs/salt-automation/.before-script-template.yml'
+  - project: labs/salt-automation
+    ref: master
+    file:
+      - gitlab-ci-templates/common/no-interrupt-meta.v1.yml  # For "sync" stage.
+      - gitlab-ci-templates/common/pre-commit.v1.yml  # For "lint" stage.
+      - gitlab-ci-templates/common/conventional-commits.v1.yml  # For "lint" and "release" stages.
+      - gitlab-ci-templates/common/docker-build-meta.v2.yml  # For build stage. Must build the image first.
+      - gitlab-ci-templates/python/pytest.v1.yml  # For "test" and "coverage" stages. Includes rules for caching.
+      - gitlab-ci-templates/common/docker-release.v1.yml  # For "release" stage. Includes a docker release meta file.
+      - gitlab-ci-templates/common/autopub.v1.yml  # For "release" stage. Includes rules for caching.
+
 
 # Workflow
 ###########
@@ -43,31 +77,89 @@ workflow:
     - <<: *if-merge-request
 
 
-include:
-  - project: labs/salt-automation
-    ref: master
-    file: /gitlab-ci-templates/common/autopub.v1.yml
-#  - project: labs/salt-automation
-#    ref: master
-#    file: /gitlab-ci-templates/python/pytest.v1.yml
-  - project: labs/salt-automation
-    ref: master
-    file: /gitlab-ci-templates/common/docker-release.v1.yml
-  - project: labs/salt-automation
-    ref: master
-    file: /gitlab-ci-templates/common/docker-build-meta.v2.yml
-  - project: labs/salt-automation
-    ref: master
-    file: /gitlab-ci-templates/common/pre-commit.v1.yml
-  - project: 'labs/salt-automation'
-    ref: 'master'
-    file: '/gitlab-ci-templates/common/config-updater-meta.v1.yml'
+default:
+  # All jobs are interruptible by default
+  interruptible: true
 
 
 
-# Build
-########
+# Sync stage
+#############
+Do not interrupt:
+  stage: sync
+  extends: .do-not-interrupt
+  rules:
+    - <<: *if-default-branch-refs
+    - <<: *if-tag
+    - <<: *if-schedule
+    - <<: *if-merge-request-labels-dont-interrupt
+    - when: manual
+      allow_failure: true
+
+
+# Lint stage
+#############
+.lint-base:
+  stage: lint
+  needs: []
+  rules:
+    - <<: *if-merge-request
+
+
+Lint Dockerfiles:
+  extends: .lint-base
+  image: hadolint/hadolint:latest-alpine
+  before_script:
+    - apk add fd
+  script:
+    # Run fd without exec arg to produce a list of files to be linted
+    - fd Dockerfile
+    # Run hadolint on every Dockerfile
+    - fd Dockerfile --exec hadolint
+  rules:
+    # Don't break default branch if hadolint introduce new rules
+    - <<: *if-merge-request
+
+
+
+
+# Build stage
+#############
 Build:
   extends: .build-docker
   variables:
-    BUILD_DOCKER_EXTRA_FLAGS: "--build-arg=COMMIT_SHA=${CI_COMMIT_SHA} --build-arg=COMMIT_TAG=${CI_COMMIT_TAG}"
+    CI_IMAGE: ${SCI_COMMIT_SHA}
+    DOCKERFILE: ${CI_PROJECT_DIR}/docker/Dockerfile
+    BUILD_DOCKER_EXTRA_FLAGS: --build-arg=COMMIT_SHA=${CI_COMMIT_SHA} --build-arg=COMMIT_TAG=${CI_COMMIT_TAG}
+  rules:
+    - <<: *if-schedule
+      when: never
+    - when: on_success
+
+
+# Test stage
+############
+Test:
+  extends: .pytest
+  variables:
+    PYTEST_COV_MODULE: elevate_engagement
+    PYTEST_EXTRA_FLAGS: -m unittest
+
+
+# Release stage
+#############
+Release to Dockerhub:
+  extends:
+    - .rules:semver-core
+  stage: release
+  needs: []
+  image: python:3-slim
+  variables:
+    POETRY_VIRTUALENVS_CREATE: "false"
+    POETRY_VIRTUALENVS_IN_PROJECT: "false"
+  before_script:
+    - pip install --no-cache-dir poetry
+  script:
+    - sed -i "s/^version = .*$/version = \"${CI_COMMIT_TAG}\"/g" pyproject.toml
+    - poetry publish --build --no-interaction --username __token__ --password ${PYPI_TOKEN}
+

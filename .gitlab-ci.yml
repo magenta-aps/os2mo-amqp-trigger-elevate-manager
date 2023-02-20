@@ -53,16 +53,8 @@ include:
     # - gitlab-ci-templates/python/pytest.v1.yml
     - gitlab-ci-templates/common/docker-release.v1.yml
     - gitlab-ci-templates/common/docker-build-meta.v2.yml
-    - gitlab-ci-templates/python/pytest-meta.v1.yml
     - gitlab-ci-templates/common/rules.v1.yml
 
-
-# Build
-########
-Build:
-  extends: .build-docker
-  variables:
-    BUILD_DOCKER_EXTRA_FLAGS: "--build-arg=COMMIT_SHA=${CI_COMMIT_SHA} --build-arg=COMMIT_TAG=${CI_COMMIT_TAG}"
 
 Test:
   extends: .pytest

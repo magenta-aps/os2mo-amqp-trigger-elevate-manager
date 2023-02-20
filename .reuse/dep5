@@ -2,6 +2,7 @@ Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
 Upstream-Name: OS2mo-AMQP-trigger-elevate-engagement
 Upstream-Contact: Magenta ApS <info@magenta.dk>
 
-Files: .flake8 mypy.ini poetry.* *poetry.lock *.toml *.json *.yaml *.yml RELEASE.md RELEASE.md.template dev-environment
-Copyright: 2023 Magenta ApS <https://magenta.dk>
+Files: mo_ldap_import_export/* tests/* dev-environment/* cron/* docker-compose.yml docker-compose.override.template.yml Dockerfile README.md mypy.ini poetry.lock pyproject.toml .gitignore .gitlab-ci.yml .pre-commit-config.yaml .flake8
+Copyright: 2021-2022 Magenta ApS <info@magenta.dk>
 License: MPL-2.0
+

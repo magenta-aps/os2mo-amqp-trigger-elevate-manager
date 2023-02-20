@@ -2,12 +2,12 @@
 #
 # SPDX-License-Identifier: MPL-2.0
 
-FROM python:3.10
+FROM python:3.11
 
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     PIP_DISABLE_PIP_VERSION_CHECK=on \
-    POETRY_VERSION="1.2.2" \
+    POETRY_VERSION="1.3.2" \
     POETRY_HOME=/opt/poetry \
     VIRTUAL_ENV="/venv"
 ENV PATH="$VIRTUAL_ENV/bin:$POETRY_HOME/bin:$PATH"
@@ -20,7 +20,7 @@ RUN python -m venv $POETRY_HOME \
 WORKDIR /opt
 RUN python -m venv $VIRTUAL_ENV
 COPY poetry.lock pyproject.toml ./
-RUN poetry install --no-root --no-dev
+RUN poetry install --no-dev
 
 WORKDIR /opt/app
 COPY elevate_manager .

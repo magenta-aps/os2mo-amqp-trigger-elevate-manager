@@ -20,16 +20,18 @@ class Settings(BaseSettings):
         frozen = True
         env_nested_delimiter = "__"
 
-    amqp_url: AmqpDsn = Field(parse_obj_as(AmqpDsn, "amqp://guest:guest@msg_broker"))
+    amqp_url: AmqpDsn = Field(cast(AmqpDsn, "amqp://guest:guest@msg_broker"))
 
-    auth_realm: str = Field("mo", description="Base URL for OS2mo. Will authenticate against this Realm.")
-
-    auth_server: AnyHttpUrl = Field(
-        parse_obj_as(AnyHttpUrl, "http://keycloak-service:8080/auth"),
-        description="Base URL for OIDC server, which is Keycloak."
+    auth_realm: str = Field(
+        "mo", description="Base URL for OS2mo. Will authenticate against this Realm."
     )
 
-    client_id: str = Field("engagement-elevator", description="Client ID for Keycloak.")
+    auth_server: AnyHttpUrl = Field(
+        cast(AnyHttpUrl, "http://keycloak-service:8080/auth"),
+        description="Base URL for OIDC server, which is Keycloak.",
+    )
+
+    client_id: str = Field("integration_engagement_elevator", description="Client ID for Keycloak.")
 
     client_secret: str | None = Field(..., description="Client secret for Keycloak.")
 
@@ -38,9 +40,7 @@ class Settings(BaseSettings):
     )
 
     mo_url: AnyHttpUrl = Field(
-        parse_obj_as(AnyHttpUrl, "http://mo-service:5000"),
+        cast(AnyHttpUrl, "http://mo-service:5000"),
         description="Base URL for OS2mo.",
     )
-
-    mora_base: AnyHttpUrl = Field(cast(AnyHttpUrl, "http://localhost:5000"))
 

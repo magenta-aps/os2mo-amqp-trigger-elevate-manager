@@ -4,7 +4,7 @@ from uuid import UUID
 import structlog
 from raclients.graph.client import PersistentGraphQLClient  # type: ignore
 
-from config import Settings
+from .config import Settings
 
 logger = structlog.get_logger()
 
@@ -14,7 +14,7 @@ def get_client(settings: Settings) -> PersistentGraphQLClient:
     Configure and return GraphQL client
     """
     gql_client = PersistentGraphQLClient(
-        url=f"{settings.mora_base}/graphql/v3",
+        url=f"{settings.mo_url}/graphql/v3",
         client_id=settings.client_id,
         client_secret=settings.client_secret,
         auth_realm=settings.auth_realm,
@@ -80,7 +80,7 @@ def get_org_unit_levels(gql_client: PersistentGraphQLClient):
 
 
 # TODO: add return type (Quicktype obj) for the appropriate GQL query
-def get_existing_managers(org_unit_uuid: UUID, gql_session: PersistentGraphQLClient):
+def get_existing_managers(org_unit_uuid: UUID, gql_client: PersistentGraphQLClient):
     """
     Get existing managers of the given OU
 
@@ -105,7 +105,7 @@ def get_existing_managers(org_unit_uuid: UUID, gql_session: PersistentGraphQLCli
 
 # TODO: add argument providing existing manager(s) (can be None)
 def update_manager_and_elevate_engagement(
-        org_unit: UUID, elevate_engagement: bool
+    org_unit: UUID, elevate_engagement: bool
 ) -> None:
     """
     This function will:

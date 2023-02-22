@@ -4,17 +4,26 @@ from uuid import UUID
 import structlog
 from raclients.graph.client import PersistentGraphQLClient  # type: ignore
 
-from elevate_manager.config import Settings
+from .config import Settings
 
 logger = structlog.get_logger()
 
 
-def get_client(settings: Settings) -> PersistentGraphQLClient:
+async def get_client(settings: Settings) -> PersistentGraphQLClient:
     """
     Configure and return GraphQL client
     """
+    gql_client = PersistentGraphQLClient(
+        url=f"{settings.mo_url}/graphql/v3",
+        client_id=settings.client_id,
+        client_secret=settings.client_secret,
+        auth_realm=settings.auth_realm,
+        auth_server=settings.auth_server,
+        sync=True,
+        httpx_client_kwargs={"timeout": None},
+    )
     logger.debug("Set up GraphQL client")
-    pass
+    return gql_client
 
 
 # TODO: add return type which is yet unknown (comes from Quicktype)
@@ -70,7 +79,7 @@ def get_org_unit_levels(gql_client: PersistentGraphQLClient):
 
 
 # TODO: add return type (Quicktype obj) for the appropriate GQL query
-def get_existing_managers(org_unit: UUID):
+def get_existing_managers(org_unit_uuid: UUID, gql_client: PersistentGraphQLClient):
     """
     Get existing managers of the given OU
 

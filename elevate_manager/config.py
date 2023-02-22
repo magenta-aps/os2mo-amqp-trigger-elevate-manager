@@ -3,9 +3,8 @@
 from typing import cast
 
 from fastramqpi.config import Settings as FastRAMQPISettings  # type: ignore
-
-from pydantic import AnyHttpUrl
 from pydantic import AmqpDsn
+from pydantic import AnyHttpUrl
 from pydantic.env_settings import BaseSettings
 from pydantic.fields import Field
 

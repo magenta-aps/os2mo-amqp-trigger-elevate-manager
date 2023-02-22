@@ -22,9 +22,8 @@ async def get_client(settings: Settings) -> PersistentGraphQLClient:
         sync=True,
         httpx_client_kwargs={"timeout": None},
     )
-    return gql_client
     logger.debug("Set up GraphQL client")
-    pass
+    return gql_client
 
 
 # TODO: add return type which is yet unknown (comes from Quicktype)

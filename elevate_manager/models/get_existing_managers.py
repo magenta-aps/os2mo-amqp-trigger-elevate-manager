@@ -23,7 +23,7 @@
 # }
 #
 # Use the dataclasses below from code by calling the Pydantic function
-# parse_obj_as(GetExistingManagers, {... dict with GraphQL response ...})
+# managers = parse_obj_as(GetExistingManagers, {... dict with GraphQL response ...})
 
 from dataclasses import dataclass
 from typing import Optional, List

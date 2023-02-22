@@ -6,7 +6,6 @@ from pydantic.env_settings import BaseSettings
 from pydantic.fields import Field
 from pydantic import AnyHttpUrl
 from pydantic import AmqpDsn
-from pydantic import parse_obj_as
 
 
 class Settings(BaseSettings):
@@ -31,7 +30,9 @@ class Settings(BaseSettings):
         description="Base URL for OIDC server, which is Keycloak.",
     )
 
-    client_id: str = Field("integration_engagement_elevator", description="Client ID for Keycloak.")
+    client_id: str = Field(
+        "integration_engagement_elevator", description="Client ID for Keycloak."
+    )
 
     client_secret: str | None = Field(..., description="Client secret for Keycloak.")
 
@@ -44,3 +45,6 @@ class Settings(BaseSettings):
         description="Base URL for OS2mo.",
     )
 
+
+def get_settings(*args, **kwargs) -> Settings:
+    return Settings(*args, **kwargs)

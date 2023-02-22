@@ -10,6 +10,7 @@ from ramqp.mo.models import ObjectType  # type: ignore
 from ramqp.mo.models import PayloadType
 
 from .config import get_settings
+from .config import get_settings
 from .log import setup_logging
 
 amqp_router = MORouter()

@@ -9,7 +9,7 @@ from .config import Settings
 logger = structlog.get_logger()
 
 
-def get_client(settings: Settings) -> PersistentGraphQLClient:
+async def get_client(settings: Settings) -> PersistentGraphQLClient:
     """
     Configure and return GraphQL client
     """

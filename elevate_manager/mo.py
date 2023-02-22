@@ -1,15 +1,19 @@
 # Module containing GraphQL functions to interact with MO
 from uuid import UUID
 
+import structlog
 from raclients.graph.client import PersistentGraphQLClient  # type: ignore
 
 from elevate_manager.config import Settings
+
+logger = structlog.get_logger()
 
 
 def get_client(settings: Settings) -> PersistentGraphQLClient:
     """
     Configure and return GraphQL client
     """
+    logger.debug("Set up GraphQL client")
     pass
 
 

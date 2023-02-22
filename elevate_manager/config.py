@@ -10,6 +10,8 @@ class Settings(BaseSettings):
         default_factory=FastRAMQPISettings, description="FastRAMQPI settings"
     )
 
+    log_level: str = "INFO"
+
     class Config:
         frozen = True
         env_nested_delimiter = "__"

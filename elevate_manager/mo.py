@@ -58,8 +58,8 @@ def get_org_unit_levels(gql_client: PersistentGraphQLClient):
                 parent_uuid
                 org_unit_level {
                   name
+                  uuid
                 }
-                org_unit_level_uuid
               }
             }
           }
@@ -85,7 +85,7 @@ def get_existing_managers(org_unit_uuid: UUID, gql_client: PersistentGraphQLClie
 
     This query can be used:
 
-    query MyQuery {
+    query GetManagers {
         org_units(uuids: "f06ee470-9f17-566f-acbe-e938112d46d9") {
             objects {
                 managers {

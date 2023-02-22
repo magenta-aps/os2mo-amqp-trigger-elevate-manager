@@ -26,7 +26,8 @@
 # managers = parse_obj_as(GetExistingManagers, {... dict with GraphQL response ...})
 
 from dataclasses import dataclass
-from typing import Optional, List
+from typing import List
+from typing import Optional
 
 
 @dataclass

@@ -11,6 +11,8 @@ services:
       LOG_LEVEL: DEBUG
     networks:
       - os2mo_default
+    volumes:
+      - ./:/app/
     ports:
       - "8100:8000"
 

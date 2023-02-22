@@ -12,7 +12,7 @@
 # where the content of the file get_existing_managers.graphql is
 #
 # query GetManagers {
-#     org_units(uuids: "f06ee470-9f17-566f-acbe-e938112d46d9") {
+#     org_units {
 #         objects {
 #             managers {
 #                 uuid

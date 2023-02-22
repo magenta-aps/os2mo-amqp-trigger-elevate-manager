@@ -10,6 +10,7 @@ from ramqp.mo.models import ObjectType  # type: ignore
 from ramqp.mo.models import PayloadType
 
 from .config import get_settings
+from .log import setup_logging
 
 amqp_router = MORouter()
 fastapi_router = APIRouter()
@@ -34,6 +35,7 @@ async def listener(context: dict, payload: PayloadType, **kwargs: Any) -> None:
 
 def create_fastramqpi(**kwargs) -> FastRAMQPI:
     settings = get_settings()
+    setup_logging(settings.log_level)
 
     fastramqpi = FastRAMQPI(
         application_name="os2mo-manager-elevator", settings=settings.fastramqpi

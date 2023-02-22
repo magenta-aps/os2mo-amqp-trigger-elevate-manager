@@ -8,6 +8,7 @@ from fastramqpi.main import FastRAMQPI  # type: ignore
 from ramqp.mo import MORouter  # type: ignore
 from ramqp.mo.models import ObjectType  # type: ignore
 from ramqp.mo.models import PayloadType
+from elevate_manager.mo import get_client
 
 from .config import get_settings
 from .log import setup_logging
@@ -26,6 +27,7 @@ async def listener(context: dict, payload: PayloadType, **kwargs: Any) -> None:
     print("HURRA")
     print(payload)
     print(kwargs)
+    get_client(get_settings())
 
     routing_key = kwargs["mo_routing_key"]
 

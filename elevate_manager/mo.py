@@ -3,13 +3,16 @@ from uuid import UUID
 
 import structlog
 from raclients.graph.client import PersistentGraphQLClient  # type: ignore
+from pydantic import parse_obj_as
+from gql import gql
 
-from .config import Settings
+from elevate_manager.config import Settings, get_settings
 
 logger = structlog.get_logger()
 
 
-async def get_client(settings: Settings) -> PersistentGraphQLClient:
+
+def get_client(settings: Settings) -> PersistentGraphQLClient:
     """
     Configure and return GraphQL client
     """
@@ -79,7 +82,9 @@ def get_org_unit_levels(gql_client: PersistentGraphQLClient):
 
 
 # TODO: add return type (Quicktype obj) for the appropriate GQL query
-def get_existing_managers(org_unit_uuid: UUID, gql_client: PersistentGraphQLClient):
+async def get_existing_managers( m:
+        org_unit_uuid: UUID, gql_client: PersistentGraphQLClient,
+) -> dict:
     """
     Get existing managers of the given OU
 
@@ -87,24 +92,46 @@ def get_existing_managers(org_unit_uuid: UUID, gql_client: PersistentGraphQLClie
 
     query GetManagers {
         org_units(uuids: "f06ee470-9f17-566f-acbe-e938112d46d9") {
-            objects {
-                managers {
-                    uuid
-                    user_key
-                }
-            }
-        }
-    }
-
-    Return appropriate Quicktype object or None if there are
-    not any existing managers.
+    Returns an object containing manager uuid(s).
     """
-    pass
+    graphql_query = gql(
+        """
+        query ManagerEngagements ($uuids: [UUID!]) {
+          org_units(uuids: $uuids) {
+            uuid
+            objects {
+              name
+              managers {
+                uuid
+              }
+            }
+          }
+        }
+        """
+    )
+    variables = {"uuids": org_unit_uuid}
+
+    response = await gql_client.execute(graphql_query, variable_values=variables)
+
+    manager_objects = parse_obj_as()
+
+    return response
+
+
+async def main():
+    sets = get_settings(client_id="XYZ", client_secret="XYZ")
+    print("@@@@@@@@@@@@@@@@@@", sets)
+    gql_session = get_client(settings=sets)
+    lol = await get_existing_managers("10837513-021c-5b69-94c1-b53ffe0ce847", gql_session)
+
+
+if __name__ == "__main__":
+    asyncio.run(main())
 
 
 # TODO: add argument providing existing manager(s) (can be None)
 def update_manager_and_elevate_engagement(
-    org_unit: UUID, elevate_engagement: bool
+        org_unit: UUID, elevate_engagement: bool
 ) -> None:
     """
     This function will:

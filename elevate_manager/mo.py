@@ -2,14 +2,14 @@
 from uuid import UUID
 
 import structlog
-from raclients.graph.client import PersistentGraphQLClient  # type: ignore
-from pydantic import parse_obj_as
 from gql import gql
+from pydantic import parse_obj_as
+from raclients.graph.client import PersistentGraphQLClient  # type: ignore
 
-from elevate_manager.config import Settings, get_settings
+from elevate_manager.config import Settings
+from elevate_manager.models.get_existing_managers import GetExistingManagers
 
 logger = structlog.get_logger()
-
 
 
 def get_client(settings: Settings) -> PersistentGraphQLClient:
@@ -82,9 +82,10 @@ def get_org_unit_levels(gql_client: PersistentGraphQLClient):
 
 
 # TODO: add return type (Quicktype obj) for the appropriate GQL query
-async def get_existing_managers( m:
-        org_unit_uuid: UUID, gql_client: PersistentGraphQLClient,
-) -> dict:
+async def get_existing_managers(
+    org_unit_uuid: UUID,
+    gql_client: PersistentGraphQLClient,
+) -> GetExistingManagers:
     """
     Get existing managers of the given OU
 
@@ -98,9 +99,9 @@ async def get_existing_managers( m:
         """
         query ManagerEngagements ($uuids: [UUID!]) {
           org_units(uuids: $uuids) {
-            uuid
             objects {
               name
+              uuid
               managers {
                 uuid
               }
@@ -113,25 +114,12 @@ async def get_existing_managers( m:
 
     response = await gql_client.execute(graphql_query, variable_values=variables)
 
-    manager_objects = parse_obj_as()
-
-    return response
-
-
-async def main():
-    sets = get_settings(client_id="XYZ", client_secret="XYZ")
-    print("@@@@@@@@@@@@@@@@@@", sets)
-    gql_session = get_client(settings=sets)
-    lol = await get_existing_managers("10837513-021c-5b69-94c1-b53ffe0ce847", gql_session)
-
-
-if __name__ == "__main__":
-    asyncio.run(main())
+    return parse_obj_as(GetExistingManagers, response)
 
 
 # TODO: add argument providing existing manager(s) (can be None)
 def update_manager_and_elevate_engagement(
-        org_unit: UUID, elevate_engagement: bool
+    org_unit: UUID, elevate_engagement: bool
 ) -> None:
     """
     This function will:

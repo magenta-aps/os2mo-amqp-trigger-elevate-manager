@@ -8,10 +8,10 @@ from fastramqpi.main import FastRAMQPI  # type: ignore
 from ramqp.mo import MORouter  # type: ignore
 from ramqp.mo.models import ObjectType  # type: ignore
 from ramqp.mo.models import PayloadType
-from elevate_manager.mo import get_client
 
 from .config import get_settings
 from .log import setup_logging
+from elevate_manager.mo import get_client
 
 amqp_router = MORouter()
 fastapi_router = APIRouter()

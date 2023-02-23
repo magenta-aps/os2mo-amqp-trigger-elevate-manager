@@ -1,4 +1,8 @@
+# SPDX-FileCopyrightText: 2022 Magenta ApS <https://magenta.dk>
+# SPDX-License-Identifier: MPL-2.0
+
 # Module containing GraphQL functions to interact with MO
+
 from uuid import UUID
 
 import structlog

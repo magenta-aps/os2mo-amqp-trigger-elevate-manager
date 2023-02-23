@@ -35,7 +35,7 @@ repos:
     rev: v1.0.1
     hooks:
       - id: mypy
-        args: [  "mypy --install-types", "--config-file=pyproject.toml" ]
+        args: [ --config-file=pyproject.toml ]
         additional_dependencies:
           - aiohttp
           - fastapi

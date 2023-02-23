@@ -11,7 +11,6 @@ from ramqp.mo.models import PayloadType
 
 from .config import get_settings
 from .log import setup_logging
-from elevate_manager.mo import get_client
 
 amqp_router = MORouter()
 fastapi_router = APIRouter()

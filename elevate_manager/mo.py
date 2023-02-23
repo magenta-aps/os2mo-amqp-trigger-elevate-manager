@@ -2,7 +2,7 @@
 from uuid import UUID
 
 import structlog
-from gql import gql
+from gql import gql  # type: ignore
 from pydantic import parse_obj_as
 from raclients.graph.client import PersistentGraphQLClient  # type: ignore
 

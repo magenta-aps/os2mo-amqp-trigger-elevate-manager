@@ -1,64 +1,88 @@
+# SPDX-FileCopyrightText: 2022 Magenta ApS <https://magenta.dk>
+# SPDX-License-Identifier: MPL-2.0
 # Module containing GraphQL functions to interact with MO
 from uuid import UUID
 
 import structlog
 from gql import gql  # type: ignore
+from pydantic import AnyHttpUrl
 from pydantic import parse_obj_as
 from raclients.graph.client import PersistentGraphQLClient  # type: ignore
 
-from elevate_manager.config import Settings
 from elevate_manager.models.get_existing_managers import GetExistingManagers
+from elevate_manager.models.get_org_unit_levels import GetOrgUnitLevels
 
 logger = structlog.get_logger()
 
 
-def get_client(settings: Settings) -> PersistentGraphQLClient:
+def get_client(
+    mo_url: str,
+    client_id: str,
+    client_secret: str,
+    auth_realm: str,
+    auth_server: str,
+    sync: bool = False,
+    timeout: int = 120,
+) -> PersistentGraphQLClient:
     """
     Configure and return GraphQL client
     """
+    # logger.debug("Set up GraphQL client")
+
     gql_client = PersistentGraphQLClient(
-        url=f"{settings.mo_url}/graphql/v3",
-        client_id=settings.client_id,
-        client_secret=settings.client_secret,
-        auth_realm=settings.auth_realm,
-        auth_server=settings.auth_server,
-        sync=True,
-        httpx_client_kwargs={"timeout": None},
+        url=f"{mo_url}/graphql/v3",
+        client_id=client_id,
+        client_secret=client_secret,
+        auth_realm=auth_realm,
+        auth_server=parse_obj_as(AnyHttpUrl, auth_server),
+        sync=sync,
+        httpx_client_kwargs={"timeout": timeout},
     )
-    logger.debug("Set up GraphQL client")
     return gql_client
 
 
-# TODO: add return type which is yet unknown (comes from Quicktype)
-def get_org_unit_levels(gql_client: PersistentGraphQLClient):
+async def get_org_unit_levels(
+    gql_client: PersistentGraphQLClient, manager_uuid: UUID
+) -> GetOrgUnitLevels:
     """
     Call MO and return OU-levels in a (Quicktype generated) model instance
     for
     1) The OU where the manager update occurred
     2) All the OUs where the manager has engagements
 
-    Raise a custom exception in case of errors contacting MO
+    Args:
+        gql_client: The GraphQL client
+        manager_uuid: The UUID of the manager
 
-    Note: the responsibility for this function is NOT to perform all
-    the logic that extracts the OU-levels, but ONLY to
-    1) Call MO
-    2) Build and return a (Quicktype generated) model instance
-    3) Raise custom exception(s) in case of errors
+    Returns:
+        OU levels according to the description above
+    """
 
-    A GraphQL query like this can be used to call MO:
-    (maybe create a helper function to put in the search args...)
+    # TODO: raise a custom exception in case of errors contacting MO
 
-    query Engagements {
-      managers(uuids: "7c27c18f-9f5f-43c4-bfe0-b87421db4a59") {
-        objects {
-          employee {
-            engagements {
-              uuid
-              user_key
+    query = gql(
+        """
+        query GetOrgUnitLevels($manager_uuid: [UUID!]) {
+          managers(uuids: $manager_uuid) {
+            objects {
+              employee {
+                engagements {
+                  uuid
+                  user_key
+                  org_unit {
+                    name
+                    uuid
+                    parent_uuid
+                    org_unit_level {
+                      name
+                      uuid
+                    }
+                  }
+                }
+              }
               org_unit {
                 name
                 uuid
-                parent_uuid
                 org_unit_level {
                   name
                   uuid
@@ -66,19 +90,15 @@ def get_org_unit_levels(gql_client: PersistentGraphQLClient):
               }
             }
           }
-          org_unit {
-            name
-            uuid
-            org_unit_level {
-              name
-              uuid
-            }
-          }
         }
-      }
-    }
-    """
-    pass
+        """
+    )
+
+    r = await gql_client.execute(
+        query, variable_values={"manager_uuid": str(manager_uuid)}
+    )
+
+    return parse_obj_as(GetOrgUnitLevels, r)
 
 
 # TODO: add return type (Quicktype obj) for the appropriate GQL query

@@ -1,11 +1,12 @@
+# SPDX-FileCopyrightText: 2022 Magenta ApS <https://magenta.dk>
+# SPDX-License-Identifier: MPL-2.0
 # Module containing GraphQL functions to interact with MO
 from uuid import UUID
 
 import structlog
 from gql import gql  # type: ignore
-from pydantic import parse_obj_as
 from pydantic import AnyHttpUrl
-
+from pydantic import parse_obj_as
 from raclients.graph.client import PersistentGraphQLClient  # type: ignore
 
 from elevate_manager.models.get_existing_managers import GetExistingManagers
@@ -21,7 +22,7 @@ def get_client(
     auth_realm: str,
     auth_server: str,
     sync: bool = False,
-    timeout: int = 120
+    timeout: int = 120,
 ) -> PersistentGraphQLClient:
     """
     Configure and return GraphQL client
@@ -51,6 +52,7 @@ async def get_org_unit_levels(
 
     Args:
         gql_client: The GraphQL client
+        manager_uuid: The UUID of the manager
 
     Returns:
         OU levels according to the description above

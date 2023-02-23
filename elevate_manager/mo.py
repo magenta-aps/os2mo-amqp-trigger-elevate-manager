@@ -134,11 +134,11 @@ async def get_existing_managers(
         }
         """
     )
-    variables = {"uuids": org_unit_uuid}
+    variables = {"uuids": str(org_unit_uuid)}
 
     response = await gql_client.execute(graphql_query, variable_values=variables)
 
-    return parse_obj_as(GetExistingManagers, response)
+    return parse_obj_as(GetExistingManagers, {"data": response})
 
 
 # TODO: add argument providing existing manager(s) (can be None)

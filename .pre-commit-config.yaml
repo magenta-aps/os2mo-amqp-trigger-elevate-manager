@@ -32,10 +32,10 @@ repos:
         exclude: ^elevate_manager/models/
 
   - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v0.971
+    rev: v1.0.1
     hooks:
       - id: mypy
-        args: [ --config-file=pyproject.toml ]
+        args: [  "mypy --install-types", "--config-file=pyproject.toml" ]
         additional_dependencies:
           - aiohttp
           - fastapi

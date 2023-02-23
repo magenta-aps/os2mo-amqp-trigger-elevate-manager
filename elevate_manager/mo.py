@@ -87,13 +87,17 @@ async def get_existing_managers(
     gql_client: PersistentGraphQLClient,
 ) -> GetExistingManagers:
     """
-    Get existing managers of the given OU
+    Get existing managers of the given OU.
 
-    This query can be used:
+    Will return a response parsed in types using Quicktype, rather than nested
+    objects and arrays.
 
-    query GetManagers {
-        org_units(uuids: "f06ee470-9f17-566f-acbe-e938112d46d9") {
-    Returns an object containing manager uuid(s).
+    :arg:
+    Uuid(s) of the Organisation unit(s) wanted to find managers of.
+    Gql client to perform the query.
+
+    :returns:
+    Uuid(s) of manager(s)
     """
     graphql_query = gql(
         """

@@ -27,7 +27,6 @@ async def listener(context: dict, payload: PayloadType, **kwargs: Any) -> None:
     print("HURRA")
     print(payload)
     print(kwargs)
-    get_client(get_settings())
 
     routing_key = kwargs["mo_routing_key"]
 

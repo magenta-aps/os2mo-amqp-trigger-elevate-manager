@@ -2,14 +2,17 @@
 from uuid import UUID
 
 import structlog
+from gql import gql  # type: ignore
+from pydantic import parse_obj_as
 from raclients.graph.client import PersistentGraphQLClient  # type: ignore
 
-from .config import Settings
+from elevate_manager.config import Settings
+from elevate_manager.models.get_existing_managers import GetExistingManagers
 
 logger = structlog.get_logger()
 
 
-async def get_client(settings: Settings) -> PersistentGraphQLClient:
+def get_client(settings: Settings) -> PersistentGraphQLClient:
     """
     Configure and return GraphQL client
     """
@@ -79,27 +82,43 @@ def get_org_unit_levels(gql_client: PersistentGraphQLClient):
 
 
 # TODO: add return type (Quicktype obj) for the appropriate GQL query
-def get_existing_managers(org_unit_uuid: UUID, gql_client: PersistentGraphQLClient):
+async def get_existing_managers(
+    org_unit_uuid: UUID,
+    gql_client: PersistentGraphQLClient,
+) -> GetExistingManagers:
     """
-    Get existing managers of the given OU
+    Get existing managers of the given OU.
 
-    This query can be used:
+    Will return a response parsed in types using Quicktype, rather than nested
+    objects and arrays.
 
-    query GetManagers {
-        org_units(uuids: "f06ee470-9f17-566f-acbe-e938112d46d9") {
+    :arg:
+    Uuid(s) of the Organisation unit(s) wanted to find managers of.
+    Gql client to perform the query.
+
+    :returns:
+    Uuid(s) of manager(s)
+    """
+    graphql_query = gql(
+        """
+        query ManagerEngagements ($uuids: [UUID!]) {
+          org_units(uuids: $uuids) {
             objects {
-                managers {
-                    uuid
-                    user_key
-                }
+              name
+              uuid
+              managers {
+                uuid
+              }
             }
+          }
         }
-    }
+        """
+    )
+    variables = {"uuids": org_unit_uuid}
 
-    Return appropriate Quicktype object or None if there are
-    not any existing managers.
-    """
-    pass
+    response = await gql_client.execute(graphql_query, variable_values=variables)
+
+    return parse_obj_as(GetExistingManagers, response)
 
 
 # TODO: add argument providing existing manager(s) (can be None)

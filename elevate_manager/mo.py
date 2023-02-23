@@ -5,9 +5,8 @@ from uuid import UUID
 
 import structlog
 from gql import gql  # type: ignore
-from pydantic import parse_obj_as
 from pydantic import AnyHttpUrl
-
+from pydantic import parse_obj_as
 from raclients.graph.client import PersistentGraphQLClient  # type: ignore
 
 from elevate_manager.models.get_existing_managers import GetExistingManagers

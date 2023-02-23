@@ -76,7 +76,7 @@ def get_org_unit_levels_facade(ctx, manager_uuid):
 
     async def run_task():
         org_unit_levels = await get_org_unit_levels(gql_client, manager_uuid)
-        print(org_unit_levels)
+        click.echo(org_unit_levels)
 
     asyncio.run(run_task())
 
@@ -101,7 +101,7 @@ def get_org_managers(ctx, org_unit_uuid):
 
     async def run_task():
         org_unit_levels = await get_existing_managers(org_unit_uuid, gql_client)
-        print("!!!!!!!!!!!!!!", org_unit_levels)
+        click.echo(org_unit_levels)
 
     asyncio.run(run_task())
 

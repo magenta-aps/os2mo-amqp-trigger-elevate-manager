@@ -98,7 +98,7 @@ async def get_org_unit_levels(
         query, variable_values={"manager_uuid": str(manager_uuid)}
     )
 
-    return parse_obj_as(GetOrgUnitLevels, r)
+    return parse_obj_as(GetOrgUnitLevels, {"data": r})
 
 
 # TODO: add return type (Quicktype obj) for the appropriate GQL query

@@ -40,7 +40,7 @@ def get_client(
     return gql_client
 
 
-def get_org_unit_levels(
+async def get_org_unit_levels(
     gql_client: PersistentGraphQLClient, manager_uuid: UUID
 ) -> GetOrgUnitLevels:
     """
@@ -49,47 +49,14 @@ def get_org_unit_levels(
     1) The OU where the manager update occurred
     2) All the OUs where the manager has engagements
 
-    Raise a custom exception in case of errors contacting MO
+    Args:
+        gql_client: The GraphQL client
 
-    Note: the responsibility for this function is NOT to perform all
-    the logic that extracts the OU-levels, but ONLY to
-    1) Call MO
-    2) Build and return a (Quicktype generated) model instance
-    3) Raise custom exception(s) in case of errors
-
-    A GraphQL query like this can be used to call MO:
-    (maybe create a helper function to put in the search args...)
-
-    query Engagements {
-      managers(uuids: "7c27c18f-9f5f-43c4-bfe0-b87421db4a59") {
-        objects {
-          employee {
-            engagements {
-              uuid
-              user_key
-              org_unit {
-                name
-                uuid
-                parent_uuid
-                org_unit_level {
-                  name
-                  uuid
-                }
-              }
-            }
-          }
-          org_unit {
-            name
-            uuid
-            org_unit_level {
-              name
-              uuid
-            }
-          }
-        }
-      }
-    }
+    Returns:
+        OU levels according to the description above
     """
+
+    # TODO: raise a custom exception in case of errors contacting MO
 
     query = gql(
         """
@@ -125,7 +92,7 @@ def get_org_unit_levels(
         """
     )
 
-    r = gql_client.execute(
+    r = await gql_client.execute(
         query, variable_values={"manager_uuid": str(manager_uuid)}
     )
 

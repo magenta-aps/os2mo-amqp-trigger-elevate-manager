@@ -53,6 +53,7 @@ async def get_org_unit_levels(
 
     Args:
         gql_client: The GraphQL client
+        manager_uuid: The UUID of the manager
 
     Returns:
         OU levels according to the description above

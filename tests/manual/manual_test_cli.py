@@ -1,5 +1,7 @@
 # SPDX-FileCopyrightText: 2022 Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
+import asyncio
+
 import click
 
 from elevate_manager.mo import get_client
@@ -69,11 +71,13 @@ def get_org_unit_levels_facade(ctx, manager_uuid):
         client_secret=ctx.obj["client_secret"],
         auth_realm="mo",
         auth_server=ctx.obj["auth_server"],
-        sync=True,
     )
 
-    org_unit_levels = get_org_unit_levels(gql_client, manager_uuid)
-    print(org_unit_levels)
+    async def run_task():
+        org_unit_levels = await get_org_unit_levels(gql_client, manager_uuid)
+        print(org_unit_levels)
+
+    asyncio.run(run_task())
 
 
 if __name__ == "__main__":

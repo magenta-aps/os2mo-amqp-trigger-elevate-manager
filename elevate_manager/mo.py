@@ -101,7 +101,6 @@ async def get_org_unit_levels(
     return parse_obj_as(GetOrgUnitLevels, {"data": r})
 
 
-# TODO: add return type (Quicktype obj) for the appropriate GQL query
 async def get_existing_managers(
     org_unit_uuid: UUID,
     gql_client: PersistentGraphQLClient,
@@ -109,16 +108,14 @@ async def get_existing_managers(
     """
     Get existing managers of the given OU.
 
-    Will return a response parsed in types using Quicktype, rather than nested
-    objects and arrays.
+    Args:
+        org_unit_uuid: UUID of the organisation unit to find managers of
+        gql_client: The GraphQL client to perform the query.
 
-    :arg:
-    Uuid(s) of the Organisation unit(s) wanted to find managers of.
-    Gql client to perform the query.
-
-    :returns:
-    Uuid(s) of manager(s)
+    Returns:
+        UUIDs of the org unit managers
     """
+
     graphql_query = gql(
         """
         query ManagerEngagements ($uuids: [UUID!]) {

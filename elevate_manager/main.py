@@ -2,18 +2,23 @@
 # SPDX-License-Identifier: MPL-2.0
 from typing import Any
 
+import structlog
+
 from fastapi import APIRouter
 from fastapi import FastAPI
 from fastramqpi.main import FastRAMQPI  # type: ignore
 from ramqp.mo import MORouter  # type: ignore
-from ramqp.mo.models import ObjectType  # type: ignore
 from ramqp.mo.models import PayloadType
 
 from .config import get_settings
+from .events import process_manager_event
 from .log import setup_logging
+from .mo import get_client
 
 amqp_router = MORouter()
 fastapi_router = APIRouter()
+
+logger = structlog.get_logger(__name__)
 
 
 @fastapi_router.post("/dummy/test")
@@ -21,16 +26,10 @@ async def dummy() -> dict[str, str]:
     return {"foo": "bar"}
 
 
-@amqp_router.register("*.*.*")
+@amqp_router.register("org_unit.manager.*")
 async def listener(context: dict, payload: PayloadType, **kwargs: Any) -> None:
-    print("HURRA")
-    print(payload)
-    print(kwargs)
-
-    routing_key = kwargs["mo_routing_key"]
-
-    if routing_key.object_type == ObjectType.MANAGER:
-        print("Manager UUID", payload.object_uuid)
+    gql_client = context["user_context"]["gql_client"]
+    await process_manager_event(gql_client, payload.object_uuid)
 
 
 def create_fastramqpi(**kwargs) -> FastRAMQPI:
@@ -46,6 +45,15 @@ def create_fastramqpi(**kwargs) -> FastRAMQPI:
 
     app = fastramqpi.get_app()
     app.include_router(fastapi_router)
+
+    gql_client = get_client(
+        mo_url=settings.mo_url,
+        client_id=settings.client_id,
+        client_secret=settings.client_secret.get_secret_value(),
+        auth_realm=settings.auth_realm,
+        auth_server=settings.auth_server,
+    )
+    fastramqpi.add_context(gql_client=gql_client)
 
     return fastramqpi
 

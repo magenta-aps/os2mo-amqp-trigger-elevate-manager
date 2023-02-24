@@ -6,7 +6,8 @@ from fastramqpi.config import Settings as FastRAMQPISettings  # type: ignore
 from pydantic import AmqpDsn
 from pydantic import AnyHttpUrl
 from pydantic.env_settings import BaseSettings
-from pydantic.fields import Field
+from pydantic import Field
+from pydantic import SecretStr
 
 
 class Settings(BaseSettings):
@@ -35,7 +36,7 @@ class Settings(BaseSettings):
         "integration_engagement_elevator", description="Client ID for Keycloak."
     )
 
-    client_secret: str | None = Field(..., description="Client secret for Keycloak.")
+    client_secret: SecretStr | None = Field(..., description="Client secret for Keycloak.")
 
     fastramqpi: FastRAMQPISettings = Field(
         default_factory=FastRAMQPISettings, description="FastRAMQPI settings."

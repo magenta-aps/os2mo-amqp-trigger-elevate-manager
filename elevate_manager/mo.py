@@ -9,8 +9,8 @@ from pydantic import AnyHttpUrl
 from pydantic import parse_obj_as
 from raclients.graph.client import PersistentGraphQLClient  # type: ignore
 
-from elevate_manager.models.get_existing_managers import GetExistingManagers
-from elevate_manager.models.get_org_unit_levels import GetOrgUnitLevels
+from .models.get_existing_managers import GetExistingManagers
+from .models.get_org_unit_levels import GetOrgUnitLevels
 
 logger = structlog.get_logger()
 
@@ -139,8 +139,11 @@ async def get_existing_managers(
 
 
 # TODO: add argument providing existing manager(s) (can be None)
-def update_manager_and_elevate_engagement(
-    org_unit: UUID, elevate_engagement: bool
+async def terminate_existing_managers_and_elevate_engagement(
+    gql_client: PersistentGraphQLClient,
+    org_unit: UUID,
+    manager_uuid: UUID,
+    existing_managers: GetExistingManagers,
 ) -> None:
     """
     This function will:
@@ -148,13 +151,17 @@ def update_manager_and_elevate_engagement(
     2) Potentially elevate an existing manager engagement
 
     The two operations above will be done IN ONE GRAPHQL QUERY in
-    order to be "atomic". If the queries were split into two
-    separate queries we might risk ending up in an inconsistent
-    state e.g. if the application crashes between the two queries.
+    order to be "atomic" (NOTE: this is actually not possible with
+    the GraphQL API for now, but it is likely to be implemented later).
+    If the queries were split into two separate queries we might
+    risk ending up in an inconsistent state e.g. if the application
+    crashes between the two queries.
 
     Args:
+        gql_client: The GraphQL client
         org_unit: The UUID of the OU where the manager update occurred
-        elevate_engagement: if true, move the existing engagement
+        manager_uuid: UUID of the new manager
+        existing_managers: The managers already existing in the OU
 
     (maybe create a helper function to build the mutation queries)
 

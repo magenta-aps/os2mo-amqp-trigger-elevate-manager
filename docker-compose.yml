@@ -12,7 +12,7 @@ services:
     networks:
       - os2mo_default
     volumes:
-      - ./:/app/
+      - ./elevate_manager:/opt/app/
     ports:
       - "8100:8000"
 

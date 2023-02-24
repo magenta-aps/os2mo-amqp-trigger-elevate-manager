@@ -70,9 +70,9 @@ def get_new_org_unit_for_engagement(
     employee = one(manager_objects.employee)
     try:
         manager_engagement = one(employee.engagements)
-    except ValueError as err:
+    except ValueError:
         logger.error("Manager has more than one engagement! "
-                     "No engagements moves performed")
+                     "No engagement moves performed")
         return
 
     # Get numeric value of the engagement org unit level

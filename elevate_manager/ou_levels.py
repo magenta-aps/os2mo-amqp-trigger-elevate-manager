@@ -1,14 +1,14 @@
 # SPDX-FileCopyrightText: 2022 Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-
 # Modul containing functions for handling the actual business logic
 # of the application
-
 import structlog
 from more_itertools import one
+
+from elevate_manager.models.get_org_unit_levels import GetOrgUnitLevels
+from elevate_manager.models.get_org_unit_levels import OrganisationUnit
+
 # TODO: add return type
-from elevate_manager.models.get_org_unit_levels import GetOrgUnitLevels, \
-    OrganisationUnit
 
 logger = structlog.get_logger(__name__)
 
@@ -28,17 +28,15 @@ ORG_UNIT_LEVELS = {
 
 
 def _get_org_unit_level(org_unit: OrganisationUnit) -> int | None:
-    ou_level_name = org_unit.org_unit_level.name
+    ou_level_name = org_unit.org_unit_level.name  # type: ignore
     ou_level = ORG_UNIT_LEVELS.get(ou_level_name)
     if ou_level is None:
-        logger.error(
-            "Unknown org unit level for org unit!", org_unit=org_unit
-        )
+        logger.error("Unknown org unit level for org unit!", org_unit=org_unit)
     return ou_level
 
 
 def get_new_org_unit_for_engagement(
-    org_unit_levels: GetOrgUnitLevels
+    org_unit_levels: GetOrgUnitLevels,
 ) -> OrganisationUnit | None:
     """
     Extract the OU level of the OU where the manager update occurred and OU
@@ -59,35 +57,36 @@ def get_new_org_unit_for_engagement(
     """
 
     # Get the objects from the GraphQL response
-    manager_objects = one(one(org_unit_levels.data.managers).objects)
+    manager_objects = one(one(org_unit_levels.data.managers).objects)  # type: ignore
 
     # Get numeric value of the manager org unit level
     manager_org_unit = one(manager_objects.org_unit)
     manager_org_unit_level = _get_org_unit_level(manager_org_unit)
     if manager_org_unit_level is None:
-        return
+        return None
 
     employee = one(manager_objects.employee)
     try:
         manager_engagement = one(employee.engagements)
     except ValueError:
-        logger.error("Manager has more than one engagement! "
-                     "No engagement moves performed")
-        return
+        logger.error(
+            "Manager has more than one engagement! " "No engagement moves performed"
+        )
+        return None
 
     # Get numeric value of the engagement org unit level
     engagement_org_unit = one(manager_engagement.org_unit)
     engagement_org_unit_level = _get_org_unit_level(engagement_org_unit)
     if engagement_org_unit_level is None:
-        return
+        return None
 
     logger.debug(
         "Org unit levels",
         manager_org_unit_level=manager_org_unit_level,
-        engagement_org_unit_level=engagement_org_unit_level
+        engagement_org_unit_level=engagement_org_unit_level,
     )
 
     if manager_org_unit_level > engagement_org_unit_level:
         return manager_org_unit
 
-    return
+    return None

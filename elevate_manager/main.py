@@ -3,12 +3,11 @@
 from typing import Any
 
 import structlog
-
 from fastapi import APIRouter
 from fastapi import FastAPI
 from fastramqpi.main import FastRAMQPI  # type: ignore
 from ramqp.mo import MORouter  # type: ignore
-from ramqp.mo.models import PayloadType
+from ramqp.mo.models import PayloadType  # type: ignore
 
 from .config import get_settings
 from .events import process_manager_event

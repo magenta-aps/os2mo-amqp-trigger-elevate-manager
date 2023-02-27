@@ -5,6 +5,7 @@ import asyncio
 import click
 
 from elevate_manager.mo import get_client
+from elevate_manager.mo import get_existing_managers
 from elevate_manager.mo import get_org_unit_levels
 
 
@@ -34,7 +35,7 @@ from elevate_manager.mo import get_org_unit_levels
     "--auth-server",
     "auth_server",
     type=click.STRING,
-    default="http://localhost:8090/auth",
+    default="http://localhost:5000/auth",
     help="Base URL for Keycloak",
 )
 @click.option(
@@ -75,7 +76,32 @@ def get_org_unit_levels_facade(ctx, manager_uuid):
 
     async def run_task():
         org_unit_levels = await get_org_unit_levels(gql_client, manager_uuid)
-        print(org_unit_levels)
+        click.echo(org_unit_levels)
+
+    asyncio.run(run_task())
+
+
+@cli.command()
+@click.option(
+    "--org-unit-uuid",
+    "org_unit_uuid",
+    type=click.UUID,
+    required=True,
+    help="Org unit uuids",
+)
+@click.pass_context
+def get_org_managers(ctx, org_unit_uuid):
+    gql_client = get_client(
+        mo_url=ctx.obj["mo_base_url"],
+        client_id=ctx.obj["client_id"],
+        client_secret=ctx.obj["client_secret"],
+        auth_realm="mo",
+        auth_server=ctx.obj["auth_server"],
+    )
+
+    async def run_task():
+        org_unit_levels = await get_existing_managers(org_unit_uuid, gql_client)
+        click.echo(org_unit_levels)
 
     asyncio.run(run_task())
 

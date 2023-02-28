@@ -29,11 +29,11 @@ async def process_manager_event(
         existing_managers = await get_existing_managers(
             new_manager_engagement_unit_uuid, gql_client
         )
+        print(existing_managers)
         await terminate_existing_managers_and_elevate_engagement(
             gql_client,
             manager_uuid,
             new_manager_engagement_unit_uuid,
-            existing_managers,
         )
 
     logger.info("Manager engagement not elevated")

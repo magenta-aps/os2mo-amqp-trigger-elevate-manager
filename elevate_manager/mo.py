@@ -1,6 +1,7 @@
 # SPDX-FileCopyrightText: 2022 Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 # Module containing GraphQL functions to interact with MO
+import datetime
 from uuid import UUID
 
 import structlog
@@ -143,7 +144,7 @@ async def terminate_existing_managers_and_elevate_engagement(
     gql_client: PersistentGraphQLClient,
     org_unit: UUID,
     manager_uuid: UUID,
-    existing_managers: GetExistingManagers,
+    # existing_managers: GetExistingManagers,
 ) -> None:
     """
     This function will:
@@ -179,4 +180,51 @@ async def terminate_existing_managers_and_elevate_engagement(
         }
     }
     """
-    pass
+    # TODO: Helper function might be redundant. Remove it or adjust gql calls accordingly.
+    # def extract_manager_uuids() -> str:
+    #     managers = one(one(existing_managers.data.org_units).objects).managers
+    #     for manager in managers:
+    #         return str(manager.uuid)
+
+    graphql_terminate_query = gql(
+        """
+        mutation ($input: ManagerTerminateInput!) {
+          manager_terminate(input: $input) {
+            uuid
+          }
+        }
+        """
+    )
+    terminate_variables = {
+        "input": {
+            "uuid": str(manager_uuid),
+            "to": datetime.date.today().isoformat(),
+        }
+    }
+
+    graphql_update_manager_of_org_unit = gql(
+        """
+        mutation MyMutation($input: ManagerUpdateInput!) {
+          manager_update(input: $input) {
+            uuid
+          }
+        }
+        """
+    )
+    update_variables = {
+        "input": {
+            "uuid": str(manager_uuid),
+            "validity": {"from": datetime.date.today().isoformat()},
+            "org_unit": str(org_unit),
+        }
+    }
+
+    terminated_managers = await gql_client.execute(
+        graphql_terminate_query, variable_values=terminate_variables
+    )
+    print(terminated_managers)
+
+    updated_managers = await gql_client.execute(
+        graphql_update_manager_of_org_unit, variable_values=update_variables
+    )
+    print(updated_managers)

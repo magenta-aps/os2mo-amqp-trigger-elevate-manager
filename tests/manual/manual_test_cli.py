@@ -109,21 +109,28 @@ def get_org_managers(ctx, org_unit_uuid):
 
 @cli.command()
 @click.option(
-    "--org-unit",
-    "org_unit",
+    "--org-unit-uuid",
+    "org_unit_uuid",
     type=click.UUID,
     required=True,
-    help="Org unit uuids",
+    help="UUID of the Org unit wanting to tranfer engagement to",
 )
 @click.option(
-    "--manager-uuid",
-    "manager_uuid",
+    "--engagement-uuid",
+    "engagement_uuid",
     type=click.UUID,
     required=True,
-    help="MO manager UUID",
+    help="UUID of the engagement to be updated",
+)
+@click.option(
+    "--existing-manager-uuid",
+    "existing_manager_uuid",
+    type=click.UUID,
+    required=True,
+    help="UUID of manager(s) wanting to be terminated",
 )
 @click.pass_context
-def update_org_managers(ctx, manager_uuid, org_unit):
+def update_org_managers(ctx, org_unit_uuid, engagement_uuid, existing_manager_uuid):
     gql_client = get_client(
         mo_url=ctx.obj["mo_base_url"],
         client_id=ctx.obj["client_id"],
@@ -134,7 +141,7 @@ def update_org_managers(ctx, manager_uuid, org_unit):
 
     async def run_task():
         org_unit_levels = await terminate_existing_managers_and_elevate_engagement(
-            gql_client, org_unit, manager_uuid
+            gql_client, org_unit_uuid, engagement_uuid, existing_manager_uuid
         )
         click.echo(org_unit_levels)
 

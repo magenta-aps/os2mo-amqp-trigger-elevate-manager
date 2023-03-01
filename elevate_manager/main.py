@@ -28,6 +28,7 @@ async def dummy() -> dict[str, str]:
 @amqp_router.register("org_unit.manager.*")
 async def listener(context: dict, payload: PayloadType, **kwargs: Any) -> None:
     gql_client = context["user_context"]["gql_client"]
+    print("*****************", payload.object_uuid)
     await process_manager_event(gql_client, payload.object_uuid)
 
 

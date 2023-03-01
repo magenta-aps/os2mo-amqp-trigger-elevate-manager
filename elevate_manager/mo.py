@@ -6,6 +6,7 @@ from uuid import UUID
 
 import structlog
 from gql import gql  # type: ignore
+from more_itertools import one
 from pydantic import AnyHttpUrl
 from pydantic import parse_obj_as
 from raclients.graph.client import PersistentGraphQLClient  # type: ignore
@@ -132,9 +133,10 @@ async def get_existing_managers(
         }
         """
     )
-    variables = {"uuids": str(org_unit_uuid)}
 
-    response = await gql_client.execute(graphql_query, variable_values=variables)
+    response = await gql_client.execute(
+        graphql_query, variable_values={"uuids": str(org_unit_uuid)}
+    )
 
     return parse_obj_as(GetExistingManagers, {"data": response})
 
@@ -145,6 +147,7 @@ async def terminate_existing_managers_and_elevate_engagement(
     org_unit_uuid: UUID,
     engagement_uuid: UUID,
     existing_managers: GetExistingManagers,
+    manager_uuid: UUID,
 ) -> None:
     """
     This function will:
@@ -162,7 +165,8 @@ async def terminate_existing_managers_and_elevate_engagement(
         gql_client: The GraphQL client
         org_unit_uuid: The UUID of the OU where the manager update occurred
         engagement_uuid: UUID of the engagement to be transfered.
-        existing_managers: The managers already existing in the OU
+        existing_managers: The managers already existing in the OU.
+        manager_uuid: UUID of the new manager to be elevated.
 
     (maybe create a helper function to build the mutation queries)
 
@@ -180,6 +184,13 @@ async def terminate_existing_managers_and_elevate_engagement(
         }
     }
     """
+    # Get previous manager(s) UUID(s)
+    previous_managers = one(one(existing_managers.data.org_units).objects).managers  # type: ignore
+    previous_managers_uuids = [
+        m.uuid for m in previous_managers if m.uuid != str(manager_uuid)
+    ]
+
+    # Prepare GraphQL terminate manager query
     graphql_terminate_query = gql(
         """
         mutation ($input: ManagerTerminateInput!) {
@@ -189,18 +200,23 @@ async def terminate_existing_managers_and_elevate_engagement(
         }
         """
     )
-    terminate_variables = {
-        "input": {
-            "uuid": str(
-                existing_managers
-            ),  # UUID of the previous manager to be terminated.
-            "to": datetime.date.today().isoformat(),  # Valid until today.
+
+    # Terminate all previous managers
+    for uuid in previous_managers_uuids:
+        terminate_variables = {
+            "input": {
+                "uuid": uuid,  # UUID of the previous manager to be terminated.
+                "to": datetime.date.today().isoformat(),  # Valid until today.
+            }
         }
-    }
+
+        await gql_client.execute(
+            graphql_terminate_query, variable_values=terminate_variables
+        )
 
     graphql_update_engagement = gql(
         """
-        mutation MyMutation($input: EngagementUpdateInput!) {
+        mutation MoveEngagement($input: EngagementUpdateInput!) {
           engagement_update(input: $input) {
             uuid
           }
@@ -216,10 +232,6 @@ async def terminate_existing_managers_and_elevate_engagement(
             ),  # UUID of the OU wanting to transfer the engagement to.
         }
     }
-
-    await gql_client.execute(
-        graphql_terminate_query, variable_values=terminate_variables
-    )
 
     await gql_client.execute(
         graphql_update_engagement, variable_values=update_engagement_variables

@@ -46,11 +46,11 @@ def create_fastramqpi(**kwargs) -> FastRAMQPI:
     app.include_router(fastapi_router)
 
     gql_client = get_client(
-        mo_url=settings.mo_url,
-        client_id=settings.client_id,
-        client_secret=settings.client_secret.get_secret_value(),
-        auth_realm=settings.auth_realm,
-        auth_server=settings.auth_server,
+        mo_url=settings.fastramqpi.mo_url,
+        client_id=settings.fastramqpi.client_id,
+        client_secret=settings.fastramqpi.client_secret.get_secret_value(),
+        auth_realm=settings.fastramqpi.auth_realm,
+        auth_server=settings.fastramqpi.auth_server,
     )
     fastramqpi.add_context(gql_client=gql_client)
 

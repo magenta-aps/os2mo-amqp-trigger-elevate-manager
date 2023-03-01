@@ -4,9 +4,7 @@ from typing import cast
 
 from fastramqpi.config import Settings as FastRAMQPISettings  # type: ignore
 from pydantic import AmqpDsn
-from pydantic import AnyHttpUrl
 from pydantic import Field
-from pydantic import SecretStr
 from pydantic.env_settings import BaseSettings
 
 
@@ -23,28 +21,8 @@ class Settings(BaseSettings):
 
     amqp_url: AmqpDsn = Field(cast(AmqpDsn, "amqp://guest:guest@msg_broker"))
 
-    auth_realm: str = Field(
-        "mo", description="Base URL for OS2mo. Will authenticate against this Realm."
-    )
-
-    auth_server: AnyHttpUrl = Field(
-        cast(AnyHttpUrl, "http://keycloak-service:8080/auth"),
-        description="Base URL for OIDC server, which is Keycloak.",
-    )
-
-    client_id: str = Field(
-        "integration_engagement_elevator", description="Client ID for Keycloak."
-    )
-
-    client_secret: SecretStr = Field(..., description="Client secret for Keycloak.")
-
     fastramqpi: FastRAMQPISettings = Field(
         default_factory=FastRAMQPISettings, description="FastRAMQPI settings."
-    )
-
-    mo_url: AnyHttpUrl = Field(
-        cast(AnyHttpUrl, "http://mo-service:5000"),
-        description="Base URL for OS2mo.",
     )
 
 

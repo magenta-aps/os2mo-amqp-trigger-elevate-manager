@@ -5,8 +5,8 @@
 import structlog
 from more_itertools import one
 
-from elevate_manager.models.get_org_unit_levels import GetOrgUnitLevels
-from elevate_manager.models.get_org_unit_levels import OrganisationUnit
+from .models.get_org_unit_levels import GetOrgUnitLevels
+from .models.get_org_unit_levels import OrganisationUnit
 
 # TODO: add return type
 

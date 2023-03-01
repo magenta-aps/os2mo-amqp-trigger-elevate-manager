@@ -5,10 +5,10 @@ from uuid import UUID
 import structlog
 from raclients.graph.client import PersistentGraphQLClient  # type: ignore
 
-from elevate_manager.mo import get_existing_managers
-from elevate_manager.mo import get_org_unit_levels
-from elevate_manager.mo import terminate_existing_managers_and_elevate_engagement
-from elevate_manager.ou_levels import get_new_org_unit_for_engagement
+from .mo import get_existing_managers
+from .mo import get_org_unit_levels
+from .mo import terminate_existing_managers_and_elevate_engagement
+from .ou_levels import get_new_org_unit_for_engagement
 
 logger = structlog.get_logger(__name__)
 

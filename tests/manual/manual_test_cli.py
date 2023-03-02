@@ -130,7 +130,9 @@ def get_org_managers(ctx, org_unit_uuid):
     help="UUID of the new manager - not to be terminated",
 )
 @click.pass_context
-def update_org_managers(ctx, org_unit_uuid, engagement_uuid, manager_uuid):
+def terminate_managers_and_elevate_engagements(
+    ctx, org_unit_uuid, engagement_uuid, manager_uuid
+):
     gql_client = get_client(
         mo_url=ctx.obj["mo_base_url"],
         client_id=ctx.obj["client_id"],

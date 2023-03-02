@@ -5,4 +5,3 @@ CHANGELOG
 ------------------
 
 [#54842] Test release
-

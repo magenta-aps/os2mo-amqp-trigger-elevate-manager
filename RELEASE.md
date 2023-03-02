@@ -1,3 +1,3 @@
-Release type: feat
+Release type: patch
 
-[#54840] Made functionality for elevation
+[#54790] GitLab CI: release Docker image

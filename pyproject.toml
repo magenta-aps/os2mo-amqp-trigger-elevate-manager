@@ -3,7 +3,7 @@
 
 [tool.poetry]
 name = "elevate-manager"
-version = "1.0.1"
+version = "1.0.2"
 description = "OS2mo AMQP trigger receiver that elevates manager engagement according to manager level changes"
 authors = ["Magenta ApS <info@magenta.dk>"]
 readme = "README.md"

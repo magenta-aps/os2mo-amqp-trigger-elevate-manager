@@ -7,6 +7,7 @@ import click
 from elevate_manager.mo import get_client
 from elevate_manager.mo import get_existing_managers
 from elevate_manager.mo import get_org_unit_levels
+from elevate_manager.mo import terminate_existing_managers_and_elevate_engagement
 
 
 @click.group()
@@ -101,6 +102,50 @@ def get_org_managers(ctx, org_unit_uuid):
 
     async def run_task():
         org_unit_levels = await get_existing_managers(org_unit_uuid, gql_client)
+        click.echo(org_unit_levels)
+
+    asyncio.run(run_task())
+
+
+@cli.command()
+@click.option(
+    "--org-unit-uuid",
+    "org_unit_uuid",
+    type=click.UUID,
+    required=True,
+    help="UUID of the Org unit wanting to transfer the engagement to",
+)
+@click.option(
+    "--engagement-uuid",
+    "engagement_uuid",
+    type=click.UUID,
+    required=True,
+    help="UUID of the engagement to be updated",
+)
+@click.option(
+    "--manager-uuid",
+    "manager_uuid",
+    type=click.UUID,
+    required=True,
+    help="UUID of the new manager - not to be terminated",
+)
+@click.pass_context
+def terminate_managers_and_elevate_engagements(
+    ctx, org_unit_uuid, engagement_uuid, manager_uuid
+):
+    gql_client = get_client(
+        mo_url=ctx.obj["mo_base_url"],
+        client_id=ctx.obj["client_id"],
+        client_secret=ctx.obj["client_secret"],
+        auth_realm="mo",
+        auth_server=ctx.obj["auth_server"],
+    )
+
+    async def run_task():
+        existing_managers = await get_existing_managers(org_unit_uuid, gql_client)
+        org_unit_levels = await terminate_existing_managers_and_elevate_engagement(
+            gql_client, org_unit_uuid, engagement_uuid, existing_managers, manager_uuid
+        )
         click.echo(org_unit_levels)
 
     asyncio.run(run_task())

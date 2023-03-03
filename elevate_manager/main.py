@@ -12,7 +12,6 @@ from ramqp.mo.models import PayloadType  # type: ignore
 from .config import get_settings
 from .events import process_manager_event
 from .log import setup_logging
-from .mo import get_client
 
 amqp_router = MORouter()
 fastapi_router = APIRouter()
@@ -27,7 +26,7 @@ async def dummy() -> dict[str, str]:
 
 @amqp_router.register("org_unit.manager.*")
 async def listener(context: dict, payload: PayloadType, **kwargs: Any) -> None:
-    gql_client = context["user_context"]["gql_client"]
+    gql_client = context["graphql_session"]
     await process_manager_event(gql_client, payload.object_uuid)
 
 
@@ -44,15 +43,6 @@ def create_fastramqpi(**kwargs) -> FastRAMQPI:
 
     app = fastramqpi.get_app()
     app.include_router(fastapi_router)
-
-    gql_client = get_client(
-        mo_url=settings.fastramqpi.mo_url,
-        client_id=settings.fastramqpi.client_id,
-        client_secret=settings.fastramqpi.client_secret.get_secret_value(),
-        auth_realm=settings.fastramqpi.auth_realm,
-        auth_server=settings.fastramqpi.auth_server,
-    )
-    fastramqpi.add_context(gql_client=gql_client)
 
     return fastramqpi
 

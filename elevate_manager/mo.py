@@ -17,6 +17,9 @@ from .models.get_org_unit_levels import GetOrgUnitLevels
 logger = structlog.get_logger()
 
 
+# Only used for manual testing since we are now using the GraphQL client
+# which is shipped with FastRAMQPI. This also enables us to use the
+# Kubernetes health check probes build into FastRAMQPI
 def get_client(
     mo_url: str,
     client_id: str,
@@ -29,7 +32,7 @@ def get_client(
     """
     Configure and return GraphQL client
     """
-    # logger.debug("Set up GraphQL client")
+    logger.debug("Set up GraphQL client")
 
     gql_client = PersistentGraphQLClient(
         url=f"{mo_url}/graphql/v3",

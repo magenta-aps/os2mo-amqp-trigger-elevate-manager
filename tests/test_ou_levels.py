@@ -6,10 +6,9 @@ from pydantic import parse_obj_as
 
 from elevate_manager.models.get_org_unit_levels import GetOrgUnitLevels
 from elevate_manager.models.get_org_unit_levels import OrganisationUnit
-from elevate_manager.ou_levels import (
-    get_new_org_unit_for_engagement,
-    _get_org_unit_level,
-)
+from elevate_manager.ou_levels import _get_org_unit_level
+from elevate_manager.ou_levels import get_new_org_unit_for_engagement
+
 
 graphql_response = {
     "data": {
@@ -55,7 +54,7 @@ graphql_response = {
     }
 }
 
-graphql_response2 = {
+graphql_response_with_multiple_engagements = {
     "data": {
         "managers": [
             {
@@ -161,7 +160,17 @@ def test_get_new_org_unit_for_engagement(
     assert org_unit == expected
 
 
-# TODO: add non happy path tests
+def test_get_new_org_unit_for_engagement_returns_none_for_several_engagements():
+    # Arrange
+    org_unit_levels = parse_obj_as(
+        GetOrgUnitLevels, graphql_response_with_multiple_engagements
+    )
+
+    # Act
+    org_unit = get_new_org_unit_for_engagement(org_unit_levels)
+
+    # Assert
+    assert org_unit is None
 
 
 @pytest.mark.parametrize(
@@ -213,7 +222,8 @@ def test__get_org_unit_level_helper(
         OrganisationUnit, org_unit_payload_to_be_parsed
     )
 
-    # Extract the Organisation Unit's integer value mapped to the key (i.e. "NY1-niveau" is mapped to 100).
+    # Extract the Organisation Unit's integer value mapped to the key;
+    # i.e. the key "NY1-niveau" is mapped to the value 100.
     org_unit_levels_integer_representation = _get_org_unit_level(
         organisation_unit_payload
     )
@@ -222,16 +232,3 @@ def test__get_org_unit_level_helper(
     assert (
         org_unit_levels_integer_representation == expected_result_integer_representation
     )
-
-
-@pytest.mark.parametrize(
-    "payloads_to_be_parsed, expected_exception",
-    [(graphql_response2, ValueError), (graphql_response, None)],
-)
-def test_exception_in_get_new_org_unit_for_engagement(
-    payloads_to_be_parsed, expected_exception
-):
-    if expected_exception:
-        with pytest.raises(expected_exception):
-            org_unit_levels = parse_obj_as(GetOrgUnitLevels, payloads_to_be_parsed)
-            get_new_org_unit_for_engagement(org_unit_levels)

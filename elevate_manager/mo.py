@@ -16,6 +16,76 @@ from .models.get_org_unit_levels import GetOrgUnitLevels
 
 logger = structlog.get_logger()
 
+QUERY_FOR_GETTING_ORG_UNIT_LEVELS = gql(
+    """
+    query GetOrgUnitLevels($manager_uuid: [UUID!]) {
+      managers(uuids: $manager_uuid) {
+        objects {
+          employee {
+            engagements {
+              uuid
+              user_key
+              org_unit {
+                name
+                uuid
+                parent_uuid
+                org_unit_level {
+                  name
+                  uuid
+                }
+              }
+            }
+          }
+          org_unit {
+            name
+            uuid
+            org_unit_level {
+              name
+              uuid
+            }
+          }
+        }
+      }
+    }
+    """
+)
+
+QUERY_FOR_GETTING_EXISTING_MANAGERS = gql(
+    """
+    query ManagerEngagements ($uuids: [UUID!]) {
+      org_units(uuids: $uuids) {
+        objects {
+          name
+          uuid
+          managers {
+            uuid
+          }
+        }
+      }
+    }
+    """
+)
+
+MUTATION_FOR_TERMINATING_MANAGER = gql(
+    """
+    mutation ($input: ManagerTerminateInput!) {
+      manager_terminate(input: $input) {
+        uuid
+      }
+    }
+    """
+)
+
+MUTATION_FOR_UPDATING_ENGAGEMENT = gql(
+    """
+    mutation MoveEngagement($input: EngagementUpdateInput!) {
+      engagement_update(input: $input) {
+        uuid
+      }
+    }
+    """
+)
+
 
 # Only used for manual testing since we are now using the GraphQL client
 # which is shipped with FastRAMQPI. This also enables us to use the
@@ -65,42 +135,9 @@ async def get_org_unit_levels(
 
     # TODO: raise a custom exception in case of errors contacting MO
 
-    query = gql(
-        """
-        query GetOrgUnitLevels($manager_uuid: [UUID!]) {
-          managers(uuids: $manager_uuid) {
-            objects {
-              employee {
-                engagements {
-                  uuid
-                  user_key
-                  org_unit {
-                    name
-                    uuid
-                    parent_uuid
-                    org_unit_level {
-                      name
-                      uuid
-                    }
-                  }
-                }
-              }
-              org_unit {
-                name
-                uuid
-                org_unit_level {
-                  name
-                  uuid
-                }
-              }
-            }
-          }
-        }
-        """
-    )
-
     r = await gql_client.execute(
-        query, variable_values={"manager_uuid": str(manager_uuid)}
+        QUERY_FOR_GETTING_ORG_UNIT_LEVELS,
+        variable_values={"manager_uuid": str(manager_uuid)},
     )
 
     return parse_obj_as(GetOrgUnitLevels, {"data": r})
@@ -120,89 +157,34 @@ async def get_existing_managers(
     Returns:
         UUIDs of the org unit managers
     """
-
-    graphql_query = gql(
-        """
-        query ManagerEngagements ($uuids: [UUID!]) {
-          org_units(uuids: $uuids) {
-            objects {
-              name
-              uuid
-              managers {
-                uuid
-              }
-            }
-          }
-        }
-        """
-    )
-
     response = await gql_client.execute(
-        graphql_query, variable_values={"uuids": str(org_unit_uuid)}
+        QUERY_FOR_GETTING_EXISTING_MANAGERS,
+        variable_values={"uuids": str(org_unit_uuid)},
     )
 
     return parse_obj_as(GetExistingManagers, {"data": response})
 
 
 # TODO: add argument providing existing manager(s) (can be None)
-async def terminate_existing_managers_and_elevate_engagement(
+async def terminate_existing_managers(
     gql_client: PersistentGraphQLClient,
-    org_unit_uuid: UUID,
-    engagement_uuid: UUID,
-    existing_managers: GetExistingManagers,
+    existing_managers: GetExistingManagers | None,
     manager_uuid: UUID,
 ) -> None:
     """
     This function will:
-    1) Terminate any existing managers if provided
-    2) Potentially elevate an existing manager engagement
-
-    The two operations above will be done IN ONE GRAPHQL QUERY in
-    order to be "atomic" (NOTE: this is actually not possible with
-    the GraphQL API for now, but it is likely to be implemented later).
-    If the queries were split into two separate queries we might
-    risk ending up in an inconsistent state e.g. if the application
-    crashes between the two queries.
+    Terminate any existing managers if provided
 
     Args:
         gql_client: The GraphQL client
-        org_unit_uuid: The UUID of the OU where the manager update occurred
-        engagement_uuid: UUID of the engagement to be transfered.
         existing_managers: The managers already existing in the OU.
         manager_uuid: UUID of the new manager to be elevated.
-
-    (maybe create a helper function to build the mutation queries)
-
-    GraphQL query (for elevating engagement) for inspiration:
-
-    mutation MoveEngagement {
-        engagement_update(
-            input: {
-                uuid: "8a37aeae-47af-4a4c-9ea7-37d40c1dcf6c",
-                validity: {from: "2023-02-09"},
-                org_unit: "fb2d158f-114e-5f67-8365-2c520cf10b58"
-            }
-        ) {
-            uuid
-        }
-    }
     """
     # Get previous manager(s) UUID(s)
     previous_managers = one(one(existing_managers.data.org_units).objects).managers  # type: ignore
     previous_managers_uuids = [
         m.uuid for m in previous_managers if m.uuid != str(manager_uuid)
     ]
-
-    # Prepare GraphQL terminate manager query
-    graphql_terminate_query = gql(
-        """
-        mutation ($input: ManagerTerminateInput!) {
-          manager_terminate(input: $input) {
-            uuid
-          }
-        }
-        """
-    )
 
     # Terminate all previous managers
     for uuid in previous_managers_uuids:
@@ -214,18 +196,25 @@ async def terminate_existing_managers_and_elevate_engagement(
         }
 
         await gql_client.execute(
-            graphql_terminate_query, variable_values=terminate_variables
+            MUTATION_FOR_TERMINATING_MANAGER, variable_values=terminate_variables
         )
 
-    graphql_update_engagement = gql(
-        """
-        mutation MoveEngagement($input: EngagementUpdateInput!) {
-          engagement_update(input: $input) {
-            uuid
-          }
-        }
-        """
-    )
+
+async def elevate_engagements(
+    gql_client: PersistentGraphQLClient,
+    org_unit_uuid: UUID,
+    engagement_uuid: UUID,
+):
+    """
+    The purpose of this function is to move an engagement by elevating the
+    engagement to its new Organisation Units' Level.
+
+    Args:
+        gql_client: The GraphQL client
+        org_unit_uuid: UUID of the Organisation Unit to transfer the manager to
+        engagement_uuid: UUID of the engagement to be transfered.
+    """
+
     update_engagement_variables = {
         "input": {
             "uuid": str(engagement_uuid),  # UUID of the engagement to be updated.
@@ -237,5 +226,5 @@ async def terminate_existing_managers_and_elevate_engagement(
     }
 
     await gql_client.execute(
-        graphql_update_engagement, variable_values=update_engagement_variables
+        MUTATION_FOR_UPDATING_ENGAGEMENT, variable_values=update_engagement_variables
     )

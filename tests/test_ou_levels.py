@@ -9,7 +9,6 @@ from elevate_manager.models.get_org_unit_levels import OrganisationUnit
 from elevate_manager.ou_levels import _get_org_unit_level
 from elevate_manager.ou_levels import get_new_org_unit_for_engagement
 
-
 graphql_response = {
     "data": {
         "managers": [
@@ -174,54 +173,29 @@ def test_get_new_org_unit_for_engagement_returns_none_for_several_engagements():
 
 
 @pytest.mark.parametrize(
-    "org_unit_payload_to_be_parsed, expected_result_integer_representation",
+    "org_unit_level_name, expected_result_integer_representation",
     [
-        (
-            {
-                "name": "Borgmesterens Afdeling",
-                "uuid": "b6c11152-0645-4712-a207-ba2c53b391ab",
-                "org_unit_level": {
-                    "name": "NY6-niveau",
-                    "uuid": "84f95e29-48a0-4175-85fd-84a1f596e1a4",
-                },
-            },
-            600,
-        ),
-        (
-            {
-                "name": "Borgmesterens Afdeling",
-                "uuid": "b6c11152-0645-4712-a207-ba2c53b391ab",
-                "org_unit_level": {
-                    "name": "NY0-niveau",
-                    "uuid": "84f95e29-48a0-4175-85fd-84a1f596e1a4",
-                },
-            },
-            0,
-        ),
-        (
-            {
-                "name": "Borgmesterens Afdeling",
-                "uuid": "b6c11152-0645-4712-a207-ba2c53b391ab",
-                "org_unit_level": {
-                    "name": "This should return None",
-                    "uuid": "84f95e29-48a0-4175-85fd-84a1f596e1a4",
-                },
-            },
-            None,
-        ),
+        ("NY1-niveau", 100),
+        ("NY2-niveau", 200),
+        ("THIS SHOULD RETURN NONE", None),
+        ("NY6-niveau", 600),
+        ("NY7-niveau", None),  # This one doesn't exist.
     ],
 )
 def test__get_org_unit_level_helper(
-    org_unit_payload_to_be_parsed, expected_result_integer_representation
+    org_unit_level_name, expected_result_integer_representation
 ):
     """Tests if the helper function to retrieve the Organisation Unit's level returns
     the correct value and returns None if it doesn't recognize the naming convention
     attributed to the Organisation Units level."""
     # Insert the payload to the model and parse it correctly.
     organisation_unit_payload = parse_obj_as(
-        OrganisationUnit, org_unit_payload_to_be_parsed
+        OrganisationUnit,
+        graphql_response["data"]["managers"][0]["objects"][0]["org_unit"][0],
     )
+    organisation_unit_payload.org_unit_level.name = org_unit_level_name
 
+    #
     # Extract the Organisation Unit's integer value mapped to the key;
     # i.e. the key "NY1-niveau" is mapped to the value 100.
     org_unit_levels_integer_representation = _get_org_unit_level(

@@ -165,15 +165,14 @@ async def get_existing_managers(
     return parse_obj_as(GetExistingManagers, {"data": response})
 
 
-# TODO: add argument providing existing manager(s) (can be None)
 async def terminate_existing_managers(
     gql_client: PersistentGraphQLClient,
-    existing_managers: GetExistingManagers | None,
+    existing_managers: GetExistingManagers,
     manager_uuid: UUID,
 ) -> None:
     """
     This function will:
-    Terminate any existing managers if provided
+    Terminate any existing managers.
 
     Args:
         gql_client: The GraphQL client
@@ -200,7 +199,7 @@ async def terminate_existing_managers(
         )
 
 
-async def elevate_engagements(
+async def elevate_engagement(
     gql_client: PersistentGraphQLClient,
     org_unit_uuid: UUID,
     engagement_uuid: UUID,

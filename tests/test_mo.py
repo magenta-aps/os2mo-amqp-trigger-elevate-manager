@@ -1,24 +1,22 @@
 import datetime
 import unittest.mock
-
-import pytest
 from unittest.mock import AsyncMock
 from uuid import UUID
 from uuid import uuid4
+
+import pytest
 from pydantic import parse_obj_as
 
-from elevate_manager.models.get_org_unit_levels import GetOrgUnitLevels
+from elevate_manager.mo import elevate_engagement
+from elevate_manager.mo import get_existing_managers
+from elevate_manager.mo import get_org_unit_levels
+from elevate_manager.mo import MUTATION_FOR_TERMINATING_MANAGER
+from elevate_manager.mo import MUTATION_FOR_UPDATING_ENGAGEMENT
+from elevate_manager.mo import QUERY_FOR_GETTING_EXISTING_MANAGERS
+from elevate_manager.mo import QUERY_FOR_GETTING_ORG_UNIT_LEVELS
+from elevate_manager.mo import terminate_existing_managers
 from elevate_manager.models.get_existing_managers import GetExistingManagers
-from elevate_manager.mo import (
-    get_org_unit_levels,
-    get_existing_managers,
-    terminate_existing_managers,
-    elevate_engagements,
-    QUERY_FOR_GETTING_ORG_UNIT_LEVELS,
-    QUERY_FOR_GETTING_EXISTING_MANAGERS,
-    MUTATION_FOR_TERMINATING_MANAGER,
-    MUTATION_FOR_UPDATING_ENGAGEMENT,
-)
+from elevate_manager.models.get_org_unit_levels import GetOrgUnitLevels
 
 org_unit_level_response = {
     "managers": [
@@ -62,6 +60,20 @@ org_unit_level_response = {
     ]
 }
 
+managers_empty_response = {
+    "org_units": [
+        {
+            "objects": [
+                {
+                    "name": "Budget og Planlægning",
+                    "uuid": "1f06ed67-aa6e-4bbc-96d9-2f262b9202b5",
+                    "managers": [],
+                }
+            ]
+        }
+    ]
+}
+
 managers_response = {
     "org_units": [
         {
@@ -97,15 +109,15 @@ multiple_managers_response = {
 
 @pytest.mark.asyncio
 async def test_get_org_unit_levels():
-    """Tests if the function call was awaited and that the response data
+    """Tests if the GraphQL execute coroutine was awaited and that the response data
     is parsed with the expected model."""
     # ARRANGE
     manager_uuid = uuid4()
-    # Mock the GraphQL client, as this makes an actual DB call,
+    # Mock the GraphQL client, as this makes an actual MO call,
     # and we need to mock this behaviour out.
     mocked_gql_client = AsyncMock()
     # Parse the object returned from the response to our GetOrgUnitLevels model.
-    parsed_org_unit_level_response = parse_obj_as(
+    expected_org_unit_level_response = parse_obj_as(
         GetOrgUnitLevels, {"data": org_unit_level_response}
     )
 
@@ -120,7 +132,7 @@ async def test_get_org_unit_levels():
     )
 
     # ASSERT
-    assert actual_org_unit_levels_response == parsed_org_unit_level_response
+    assert actual_org_unit_levels_response == expected_org_unit_level_response
     mock_execute.assert_awaited_once_with(
         QUERY_FOR_GETTING_ORG_UNIT_LEVELS,
         variable_values={"manager_uuid": str(manager_uuid)},
@@ -129,25 +141,26 @@ async def test_get_org_unit_levels():
 
 @pytest.mark.asyncio
 async def test_get_existing_managers():
-    """Tests if the function call was awaited and that the response data
+    """Tests if the GraphQL execute coroutine was awaited and that the response data
     is parsed with the expected model."""
     # ARRANGE
     org_unit_uuid = uuid4()
     mocked_gql_client = AsyncMock()
 
-    parsed_managers_response = parse_obj_as(
+    expected_managers_response = parse_obj_as(
         GetExistingManagers, {"data": managers_response}
     )
 
     mock_execute = AsyncMock(return_value=managers_response)
     mocked_gql_client.execute = mock_execute
 
+    # ACT
     actual_managers_response = await get_existing_managers(
         gql_client=mocked_gql_client, org_unit_uuid=org_unit_uuid
     )
 
     # Assert if the actual response is the same as the one parsed.
-    assert actual_managers_response == parsed_managers_response
+    assert actual_managers_response == expected_managers_response
     mock_execute.assert_awaited_once_with(
         QUERY_FOR_GETTING_EXISTING_MANAGERS,
         variable_values={"uuids": str(org_unit_uuid)},
@@ -155,9 +168,9 @@ async def test_get_existing_managers():
 
 
 @pytest.mark.asyncio
-async def test_terminate_existing_managers():
+async def test_terminate_existing_managers_awaited():
     """
-    Tests if the function call was awaited and that the mutation
+    Tests if the GraphQL execute coroutine was awaited and that the mutation
     was executed with the length of the list of manager uuids.
     """
     # ARRANGE
@@ -205,8 +218,60 @@ async def test_terminate_existing_managers():
 
 
 @pytest.mark.asyncio
+async def test_terminate_existing_manager_not_awaited():
+    """
+    Test to verify the GraphQL execute coroutine is not awaited and that the mutation
+    was executed with only 1 manager uuid.
+    """
+    # ARRANGE
+    manager_uuid = UUID("5a988dee-109a-4353-95f2-fb414ea8d605")
+    parsed_managers_response = parse_obj_as(
+        GetExistingManagers, {"data": managers_response}  # Only 1 previous manager.
+    )
+    mocked_gql_client = AsyncMock()
+
+    mock_execute = AsyncMock()
+    mocked_gql_client.execute = mock_execute
+
+    # ACT
+    await terminate_existing_managers(
+        mocked_gql_client, parsed_managers_response, manager_uuid
+    )
+
+    # ASSERT
+    assert len(mock_execute.call_args_list) == 0
+    mock_execute.assert_not_awaited()  # Awaited 0 times.
+
+
+@pytest.mark.asyncio
+async def test_no_existing_manager_to_terminate_and_not_awaited():
+    """
+    Test to verify the GraphQL execute coroutine is not awaited and that the mutation
+    was executed with only 1 manager uuid.
+    """
+    # ARRANGE
+    manager_uuid = UUID("12388dee-109a-4353-95f2-fb414ea84321")
+    parsed_empty_managers_response = parse_obj_as(
+        GetExistingManagers, {"data": managers_empty_response}  # No previous manager.
+    )
+    mocked_gql_client = AsyncMock()
+
+    mock_execute = AsyncMock()
+    mocked_gql_client.execute = mock_execute
+
+    # ACT
+    await terminate_existing_managers(
+        mocked_gql_client, parsed_empty_managers_response, manager_uuid
+    )
+
+    # ASSERT
+    assert len(mock_execute.call_args_list) == 0
+    mock_execute.assert_not_awaited()  # Awaited 0 times.
+
+
+@pytest.mark.asyncio
 async def test_elevate_engagements():
-    """Tests if the function call was awaited and that the mutation was executed."""
+    """Tests if the GraphQL execute coroutine was awaited and that the mutation was executed."""
     # ARRANGE
     org_unit_uuid = uuid4()
     engagement_uuid = uuid4()
@@ -216,7 +281,7 @@ async def test_elevate_engagements():
     mocked_gql_client.execute = mock_execute
 
     # ACT
-    await elevate_engagements(
+    await elevate_engagement(
         gql_client=mocked_gql_client,
         org_unit_uuid=org_unit_uuid,
         engagement_uuid=engagement_uuid,

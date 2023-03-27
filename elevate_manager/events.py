@@ -6,9 +6,10 @@ import structlog
 from more_itertools import one
 from raclients.graph.client import PersistentGraphQLClient  # type: ignore
 
+from .mo import elevate_engagement
 from .mo import get_existing_managers
 from .mo import get_org_unit_levels
-from .mo import terminate_existing_managers_and_elevate_engagement
+from .mo import terminate_existing_managers
 from .ou_levels import get_new_org_unit_for_engagement
 
 logger = structlog.get_logger(__name__)
@@ -38,12 +39,14 @@ async def process_manager_event(
         existing_managers = await get_existing_managers(
             new_manager_engagement_org_unit_uuid, gql_client
         )
-        await terminate_existing_managers_and_elevate_engagement(
+        await terminate_existing_managers(
             gql_client,
-            new_manager_engagement_org_unit_uuid,
-            engagement_uuid,
             existing_managers,
             manager_uuid,
+        )
+        logger.info("All existing managers now terminated")
+        await elevate_engagement(
+            gql_client, new_manager_engagement_org_unit_uuid, engagement_uuid
         )
         logger.info("Manager engagement successfully elevated")
         return None

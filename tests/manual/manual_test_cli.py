@@ -4,10 +4,11 @@ import asyncio
 
 import click
 
+from elevate_manager.mo import elevate_engagement
 from elevate_manager.mo import get_client
 from elevate_manager.mo import get_existing_managers
 from elevate_manager.mo import get_org_unit_levels
-from elevate_manager.mo import terminate_existing_managers_and_elevate_engagement
+from elevate_manager.mo import terminate_existing_managers
 
 
 @click.group()
@@ -143,9 +144,11 @@ def terminate_managers_and_elevate_engagements(
 
     async def run_task():
         existing_managers = await get_existing_managers(org_unit_uuid, gql_client)
-        org_unit_levels = await terminate_existing_managers_and_elevate_engagement(
-            gql_client, org_unit_uuid, engagement_uuid, existing_managers, manager_uuid
+        org_unit_levels = await terminate_existing_managers(
+            gql_client, existing_managers, manager_uuid
         )
+        await elevate_engagement(gql_client, org_unit_uuid, engagement_uuid)
+
         click.echo(org_unit_levels)
 
     asyncio.run(run_task())

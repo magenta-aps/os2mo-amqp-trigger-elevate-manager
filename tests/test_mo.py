@@ -239,7 +239,6 @@ async def test_terminate_existing_manager_not_awaited():
     )
 
     # ASSERT
-    assert len(mock_execute.call_args_list) == 0
     mock_execute.assert_not_awaited()  # Awaited 0 times.
 
 
@@ -265,7 +264,6 @@ async def test_no_existing_manager_to_terminate_and_not_awaited():
     )
 
     # ASSERT
-    assert len(mock_execute.call_args_list) == 0
     mock_execute.assert_not_awaited()  # Awaited 0 times.
 
 

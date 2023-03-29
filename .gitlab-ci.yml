@@ -20,7 +20,7 @@ variables:
   PYTEST_COV_FAIL_UNDER: 0
 
   PRECOMMIT_USE_POETRY: "true"
-  POETRY_VERSION: 1.3.1
+  POETRY_VERSION: 1.4.1
 
 
 # Conditions
@@ -47,9 +47,9 @@ include:
   - project: labs/salt-automation
     ref: master
     file: /gitlab-ci-templates/common/autopub.v1.yml
-#  - project: labs/salt-automation
-#    ref: master
-#    file: /gitlab-ci-templates/python/pytest.v1.yml
+  - project: labs/salt-automation
+    ref: master
+    file: /gitlab-ci-templates/python/pytest.v1.yml
   - project: labs/salt-automation
     ref: master
     file: /gitlab-ci-templates/common/docker-release.v1.yml
@@ -78,7 +78,3 @@ Build:
   variables:
     BUILD_DOCKER_EXTRA_FLAGS: "--build-arg=COMMIT_SHA=${CI_COMMIT_SHA} --build-arg=COMMIT_TAG=${CI_COMMIT_TAG}"
 
-
-# Test
-Test:
-  script: python -m pytest -v tests/

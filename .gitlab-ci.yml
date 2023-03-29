@@ -5,7 +5,6 @@ stages:
   - lint
   - build
   - test
-  - coverage
   - release
   - deploy
 
@@ -15,9 +14,6 @@ variables:
 
   RELEASE_REGISTRY: docker.io
   RELEASE_REGISTRY_IMAGE: index.docker.io/magentaaps/os2mo-amqp-trigger-elevate-manager
-
-  PYTEST_COV_MODULE: elevate_manager
-  PYTEST_COV_FAIL_UNDER: 0
 
   PRECOMMIT_USE_POETRY: "true"
   POETRY_VERSION: 1.4.1

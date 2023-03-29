@@ -59,13 +59,15 @@ include:
   - project: labs/salt-automation
     ref: master
     file: /gitlab-ci-templates/common/pre-commit.v1.yml
-  - project: 'labs/salt-automation'
-    ref: 'master'
-    file: '/gitlab-ci-templates/common/config-updater-meta.v1.yml'
-  - project: 'labs/salt-automation'
+  - project: labs/salt-automation
+    ref: master
+    file: /gitlab-ci-templates/common/config-updater-meta.v1.yml
+  - project: labs/salt-automation
     ref: master
     file: /gitlab-ci-templates/common/conventional-commits.v1.yml
-
+  - project: labs/salt-automation
+    ref: master
+    file: /gitlab-ci-templates/python/pypi-cc.v1.yml
 
 
 
@@ -79,4 +81,4 @@ Build:
 
 # Test
 Test:
-  script: pytest -s tests/ --verbose
+  script: python -m pytest -s tests/ --verbose

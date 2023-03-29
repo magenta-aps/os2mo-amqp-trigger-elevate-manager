@@ -81,4 +81,4 @@ Build:
 
 # Test
 Test:
-  script: python -m pytest -s tests/ --verbose
+  script: python -m pytest -v tests/

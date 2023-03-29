@@ -93,7 +93,7 @@ Build TestImage:
   variables:
     GIT_STRATEGY: none # We do not need the source code
   before_script:
-    - cd /opt/app/tests/
+    - cd /opt/tests/
 
 Test MO GraphQL functionalities:
   extends: .test-python

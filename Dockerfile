@@ -25,6 +25,9 @@ RUN poetry install --no-root --only=main
 WORKDIR /opt/app
 COPY elevate_manager .
 WORKDIR /opt/
+
+WORKDIR /opt/app
+COPY tests . /opt/tests/
 CMD [ "uvicorn", "--factory", "app.main:create_app", "--host", "0.0.0.0" ]
 
 # Add build version to the environment last to avoid build cache misses

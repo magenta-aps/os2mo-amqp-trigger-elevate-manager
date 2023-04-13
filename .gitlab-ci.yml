@@ -21,7 +21,7 @@ variables:
   PYTEST_EXTRA_FLAGS: "-n auto"
 
   PRECOMMIT_USE_POETRY: "true"
-  POETRY_VERSION: 1.4.1
+  POETRY_VERSION: 1.2.2
 
 
 # Conditions

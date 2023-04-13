@@ -7,7 +7,7 @@ FROM python:3.11
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     PIP_DISABLE_PIP_VERSION_CHECK=on \
-    POETRY_VERSION="1.3.1" \
+    POETRY_VERSION="1.4.1" \
     POETRY_HOME=/opt/poetry \
     VIRTUAL_ENV="/venv"
 ENV PATH="$VIRTUAL_ENV/bin:$POETRY_HOME/bin:$PATH"
@@ -25,6 +25,7 @@ RUN poetry install --no-root --only=main
 WORKDIR /opt/app
 COPY elevate_manager .
 WORKDIR /opt/
+
 CMD [ "uvicorn", "--factory", "app.main:create_app", "--host", "0.0.0.0" ]
 
 # Add build version to the environment last to avoid build cache misses

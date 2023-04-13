@@ -3,7 +3,7 @@
 
 [tool.poetry]
 name = "elevate-manager"
-version = "1.0.3"
+version = "0.0.0"
 description = "OS2mo AMQP trigger receiver that elevates manager engagement according to manager level changes"
 authors = ["Magenta ApS <info@magenta.dk>"]
 readme = "README.md"
@@ -25,14 +25,15 @@ pytest-cov = "^4.0.0"
 gql = "^3.4.0"
 click = "^8.1.3"
 pytest-asyncio = "^0.21.0"
+pytest-split = "^0.8.1"
 
 
 [tool.poetry.group.dev.dependencies]
 
+[tool.pytest.ini_options]
+asyncio_mode="auto"
+
+
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
-
-[tool.autopub]
-git-username = "MagentaBot"
-git-email = "info@magenta.dk"

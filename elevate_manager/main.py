@@ -8,7 +8,7 @@ from fastapi import FastAPI
 from fastramqpi.main import FastRAMQPI  # type: ignore
 from ramqp.mo import MORouter  # type: ignore
 from ramqp.mo.models import PayloadType  # type: ignore
-from ramqp.utils import sleep_on_error
+from ramqp.utils import sleep_on_error  # type: ignore
 
 from .config import get_settings
 from .events import process_manager_event

@@ -8,6 +8,7 @@ from fastapi import FastAPI
 from fastramqpi.main import FastRAMQPI  # type: ignore
 from ramqp.mo import MORouter  # type: ignore
 from ramqp.mo.models import PayloadType  # type: ignore
+from ramqp.utils import sleep_on_error
 
 from .config import get_settings
 from .events import process_manager_event
@@ -25,6 +26,7 @@ async def dummy() -> dict[str, str]:
 
 
 @amqp_router.register("org_unit.manager.*")
+@sleep_on_error()
 async def listener(context: dict, payload: PayloadType, **kwargs: Any) -> None:
     gql_client = context["graphql_session"]
     await process_manager_event(gql_client, payload.object_uuid)

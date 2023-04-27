@@ -12,9 +12,26 @@ from pydantic import parse_obj_as
 from raclients.graph.client import PersistentGraphQLClient  # type: ignore
 
 from .models.get_existing_managers import GetExistingManagers
+from .models.get_manager_engagements_uuids import GetManagerEngagementUuids
 from .models.get_org_unit_levels import GetOrgUnitLevels
 
 logger = structlog.get_logger()
+
+QUERY_FOR_GETTING_MANAGER_ENGAGEMENT = gql(
+    """
+     query GetManagerEngagement($manager_uuid: [UUID!]) {
+      managers(uuids: $manager_uuid) {
+        objects {
+          employee {
+            engagements {
+              uuid
+            }
+          }
+        }
+      }
+    }
+    """
+)
 
 QUERY_FOR_GETTING_ORG_UNIT_LEVELS = gql(
     """
@@ -143,6 +160,28 @@ async def get_org_unit_levels(
     return parse_obj_as(GetOrgUnitLevels, {"data": r})
 
 
+async def get_engagements_and_org_unit_uuids_for_manager(
+    gql_client: PersistentGraphQLClient, manager_uuid: UUID
+) -> GetManagerEngagementUuids:
+    """
+    Get the engagement(s) and Organisation Units uuid(s) for the manager.
+
+    Args:
+        manager_uuid: UUID of the manager to find potential engagements of
+        gql_client: The GraphQL client to perform the query.
+
+    Returns:
+        Manager objects consisting of engagements and org units uuids
+    """
+
+    response = await gql_client.execute(
+        QUERY_FOR_GETTING_MANAGER_ENGAGEMENT,
+        variable_values={"manager_uuid": str(manager_uuid)},
+    )
+
+    return parse_obj_as(GetManagerEngagementUuids, {"data": response})
+
+
 async def get_existing_managers(
     org_unit_uuid: UUID,
     gql_client: PersistentGraphQLClient,
@@ -189,7 +228,7 @@ async def terminate_existing_managers(
     for uuid in previous_managers_uuids:
         terminate_variables = {
             "input": {
-                "uuid": uuid,  # UUID of the previous manager to be terminated.
+                "uuid": str(uuid),  # UUID of the previous manager to be terminated.
                 "to": datetime.date.today().isoformat(),  # Valid until today.
             }
         }
@@ -205,8 +244,8 @@ async def elevate_engagement(
     engagement_uuid: UUID,
 ):
     """
-    The purpose of this function is to move an engagement by elevating the
-    engagement to its new Organisation Units' Level.
+    The purpose of this function is to move an engagement to whichever
+    Organisation Unit a person has been made a manager of.
 
     Args:
         gql_client: The GraphQL client

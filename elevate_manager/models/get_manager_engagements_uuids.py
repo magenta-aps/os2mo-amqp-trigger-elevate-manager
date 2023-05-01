@@ -7,66 +7,30 @@
 # (see https://github.com/quicktype/quicktype) via the command
 # $ quicktype --src-lang graphql --lang py --python-version 3.7 \
 #   --graphql-introspect https://moradev.magentahosted.dk/graphql/v3 \
-#   get_org_unit_levels.graphql --just-types
+#   get_manager_engagements_org_unit_uuids.graphql --just-types
 #
-# where the content of the file get_org_unit_levels.graphql is
+# where the content of the file get_manager_engagements_org_unit_uuids.graphql is
 #
-# query Engagements {
+# query GetManagerEngagementsOrgUnitUuids {
 #   managers {
 #     objects {
 #       employee {
 #         engagements {
 #           uuid
-#           user_key
-#           org_unit {
-#             name
-#             uuid
-#             parent_uuid
-#             org_unit_level {
-#               name
-#               uuid
-#             }
-#           }
 #         }
 #       }
-#       org_unit {
-#         name
-#         uuid
-#         org_unit_level {
-#           name
-#           uuid
-#         }
-#       }
+#       org_unit_uuid
 #     }
 #   }
 # }
-#
-# Use the dataclasses below from code by calling the Pydantic function
-# org_unit_levels = parse_obj_as(GetOrgUnitLevels, {... dict with GraphQL response ...})
 
 from dataclasses import dataclass
 from typing import Optional, List
 
 
 @dataclass
-class Class:
-    name: str
-    uuid: Optional[str] = None
-
-
-@dataclass
-class OrganisationUnit:
-    name: str
-    uuid: Optional[str] = None
-    parent_uuid: Optional[str] = None
-    org_unit_level: Optional[Class] = None
-
-
-@dataclass
 class Engagement:
-    org_unit: List[OrganisationUnit]
     uuid: Optional[str] = None
-    user_key: Optional[str] = None
 
 
 @dataclass
@@ -77,7 +41,6 @@ class Employee:
 @dataclass
 class Manager:
     employee: List[Employee]
-    org_unit: List[OrganisationUnit]
 
 
 @dataclass
@@ -96,6 +59,6 @@ class Error:
 
 
 @dataclass
-class GetOrgUnitLevels:
+class GetManagerEngagementUuids:
     data: Optional[Data] = None
     errors: Optional[List[Error]] = None

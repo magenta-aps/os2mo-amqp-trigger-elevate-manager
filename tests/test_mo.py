@@ -7,16 +7,13 @@ from uuid import uuid4
 import pytest
 from pydantic import parse_obj_as
 
-from elevate_manager.mo import elevate_engagement
 from elevate_manager.mo import get_existing_managers
-from elevate_manager.mo import get_org_unit_levels
+from elevate_manager.mo import move_engagement
 from elevate_manager.mo import MUTATION_FOR_TERMINATING_MANAGER
 from elevate_manager.mo import MUTATION_FOR_UPDATING_ENGAGEMENT
 from elevate_manager.mo import QUERY_FOR_GETTING_EXISTING_MANAGERS
-from elevate_manager.mo import QUERY_FOR_GETTING_ORG_UNIT_LEVELS
 from elevate_manager.mo import terminate_existing_managers
 from elevate_manager.models.get_existing_managers import GetExistingManagers
-from elevate_manager.models.get_org_unit_levels import GetOrgUnitLevels
 
 org_unit_level_response = {
     "managers": [
@@ -105,38 +102,6 @@ multiple_managers_response = {
         }
     ]
 }
-
-
-@pytest.mark.asyncio
-async def test_get_org_unit_levels():
-    """Tests if the GraphQL execute coroutine was awaited and that the response data
-    is parsed with the expected model."""
-    # ARRANGE
-    manager_uuid = uuid4()
-    # Mock the GraphQL client, as this makes an actual MO call,
-    # and we need to mock this behaviour out.
-    mocked_gql_client = AsyncMock()
-    # Parse the object returned from the response to our GetOrgUnitLevels model.
-    expected_org_unit_level_response = parse_obj_as(
-        GetOrgUnitLevels, {"data": org_unit_level_response}
-    )
-
-    # Assign a mocked return value to the GraphQL client call. This behaves as
-    # if the client was executed, and this value would have been returned.
-    mock_execute = AsyncMock(return_value=org_unit_level_response)
-    mocked_gql_client.execute = mock_execute
-
-    # ACT
-    actual_org_unit_levels_response = await get_org_unit_levels(
-        gql_client=mocked_gql_client, manager_uuid=manager_uuid
-    )
-
-    # ASSERT
-    assert actual_org_unit_levels_response == expected_org_unit_level_response
-    mock_execute.assert_awaited_once_with(
-        QUERY_FOR_GETTING_ORG_UNIT_LEVELS,
-        variable_values={"manager_uuid": str(manager_uuid)},
-    )
 
 
 @pytest.mark.asyncio
@@ -279,7 +244,7 @@ async def test_elevate_engagements():
     mocked_gql_client.execute = mock_execute
 
     # ACT
-    await elevate_engagement(
+    await move_engagement(
         gql_client=mocked_gql_client,
         org_unit_uuid=org_unit_uuid,
         engagement_uuid=engagement_uuid,

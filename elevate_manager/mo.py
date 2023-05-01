@@ -12,35 +12,17 @@ from pydantic import parse_obj_as
 from raclients.graph.client import PersistentGraphQLClient  # type: ignore
 
 from .models.get_existing_managers import GetExistingManagers
-from .models.get_org_unit_levels import GetOrgUnitLevels
+from .models.get_manager_engagements_uuids import GetManagerEngagementUuids
 
 logger = structlog.get_logger()
 
-QUERY_FOR_GETTING_ORG_UNIT_LEVELS = gql(
+QUERY_FOR_GETTING_MANAGER_ENGAGEMENTS = gql(
     """
-    query GetOrgUnitLevels($manager_uuid: [UUID!]) {
+     query GetManagerEngagement($manager_uuid: [UUID!]) {
       managers(uuids: $manager_uuid) {
         objects {
           employee {
             engagements {
-              uuid
-              user_key
-              org_unit {
-                name
-                uuid
-                parent_uuid
-                org_unit_level {
-                  name
-                  uuid
-                }
-              }
-            }
-          }
-          org_unit {
-            name
-            uuid
-            org_unit_level {
-              name
               uuid
             }
           }
@@ -116,31 +98,26 @@ def get_client(
     return gql_client
 
 
-async def get_org_unit_levels(
+async def get_manager_engagements(
     gql_client: PersistentGraphQLClient, manager_uuid: UUID
-) -> GetOrgUnitLevels:
+) -> GetManagerEngagementUuids:
     """
-    Call MO and return OU-levels in a (Quicktype generated) model instance
-    for
-    1) The OU where the manager update occurred
-    2) All the OUs where the manager has engagements
+    Get the engagement(s) and Organisation Units uuid(s) for the manager.
 
     Args:
-        gql_client: The GraphQL client
-        manager_uuid: The UUID of the manager
+        manager_uuid: UUID of the manager to find potential engagements of
+        gql_client: The GraphQL client to perform the query.
 
     Returns:
-        OU levels according to the description above
+        Manager objects consisting of engagements and org units uuids
     """
 
-    # TODO: raise a custom exception in case of errors contacting MO
-
-    r = await gql_client.execute(
-        QUERY_FOR_GETTING_ORG_UNIT_LEVELS,
+    response = await gql_client.execute(
+        QUERY_FOR_GETTING_MANAGER_ENGAGEMENTS,
         variable_values={"manager_uuid": str(manager_uuid)},
     )
 
-    return parse_obj_as(GetOrgUnitLevels, {"data": r})
+    return parse_obj_as(GetManagerEngagementUuids, {"data": response})
 
 
 async def get_existing_managers(
@@ -189,7 +166,7 @@ async def terminate_existing_managers(
     for uuid in previous_managers_uuids:
         terminate_variables = {
             "input": {
-                "uuid": uuid,  # UUID of the previous manager to be terminated.
+                "uuid": str(uuid),  # UUID of the previous manager to be terminated.
                 "to": datetime.date.today().isoformat(),  # Valid until today.
             }
         }
@@ -199,18 +176,18 @@ async def terminate_existing_managers(
         )
 
 
-async def elevate_engagement(
+async def move_engagement(
     gql_client: PersistentGraphQLClient,
     org_unit_uuid: UUID,
     engagement_uuid: UUID,
 ):
     """
-    The purpose of this function is to move an engagement by elevating the
-    engagement to its new Organisation Units' Level.
+    The purpose of this function is to move an engagement to whichever
+    organisation unit a person has been made a manager of.
 
     Args:
         gql_client: The GraphQL client
-        org_unit_uuid: UUID of the Organisation Unit to transfer the manager to
+        org_unit_uuid: UUID of the organisation unit to transfer the manager to
         engagement_uuid: UUID of the engagement to be transfered.
     """
 

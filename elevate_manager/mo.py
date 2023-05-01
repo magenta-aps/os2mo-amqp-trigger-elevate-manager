@@ -13,7 +13,6 @@ from raclients.graph.client import PersistentGraphQLClient  # type: ignore
 
 from .models.get_existing_managers import GetExistingManagers
 from .models.get_manager_engagements_uuids import GetManagerEngagementUuids
-from .models.get_org_unit_levels import GetOrgUnitLevels
 
 logger = structlog.get_logger()
 
@@ -24,40 +23,6 @@ QUERY_FOR_GETTING_MANAGER_ENGAGEMENTS = gql(
         objects {
           employee {
             engagements {
-              uuid
-            }
-          }
-        }
-      }
-    }
-    """
-)
-
-QUERY_FOR_GETTING_ORG_UNIT_LEVELS = gql(
-    """
-    query GetOrgUnitLevels($manager_uuid: [UUID!]) {
-      managers(uuids: $manager_uuid) {
-        objects {
-          employee {
-            engagements {
-              uuid
-              user_key
-              org_unit {
-                name
-                uuid
-                parent_uuid
-                org_unit_level {
-                  name
-                  uuid
-                }
-              }
-            }
-          }
-          org_unit {
-            name
-            uuid
-            org_unit_level {
-              name
               uuid
             }
           }
@@ -131,33 +96,6 @@ def get_client(
         httpx_client_kwargs={"timeout": timeout},
     )
     return gql_client
-
-
-async def get_org_unit_levels(
-    gql_client: PersistentGraphQLClient, manager_uuid: UUID
-) -> GetOrgUnitLevels:
-    """
-    Call MO and return OU-levels in a (Quicktype generated) model instance
-    for
-    1) The OU where the manager update occurred
-    2) All the OUs where the manager has engagements
-
-    Args:
-        gql_client: The GraphQL client
-        manager_uuid: The UUID of the manager
-
-    Returns:
-        OU levels according to the description above
-    """
-
-    # TODO: raise a custom exception in case of errors contacting MO
-
-    r = await gql_client.execute(
-        QUERY_FOR_GETTING_ORG_UNIT_LEVELS,
-        variable_values={"manager_uuid": str(manager_uuid)},
-    )
-
-    return parse_obj_as(GetOrgUnitLevels, {"data": r})
 
 
 async def get_manager_engagements(

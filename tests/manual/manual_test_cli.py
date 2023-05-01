@@ -6,7 +6,6 @@ import click
 
 from elevate_manager.mo import get_client
 from elevate_manager.mo import get_existing_managers
-from elevate_manager.mo import get_org_unit_levels
 from elevate_manager.mo import move_engagement
 from elevate_manager.mo import terminate_existing_managers
 
@@ -56,31 +55,6 @@ def cli(ctx, mo_base_url, client_id, client_secret, auth_server, timeout):
     ctx.obj["client_secret"] = client_secret
     ctx.obj["auth_server"] = auth_server
     ctx.obj["timeout"] = timeout
-
-
-@cli.command()
-@click.option(
-    "--manager-uuid",
-    "manager_uuid",
-    type=click.UUID,
-    required=True,
-    help="MO manager UUID",
-)
-@click.pass_context
-def get_org_unit_levels_facade(ctx, manager_uuid):
-    gql_client = get_client(
-        mo_url=ctx.obj["mo_base_url"],
-        client_id=ctx.obj["client_id"],
-        client_secret=ctx.obj["client_secret"],
-        auth_realm="mo",
-        auth_server=ctx.obj["auth_server"],
-    )
-
-    async def run_task():
-        org_unit_levels = await get_org_unit_levels(gql_client, manager_uuid)
-        click.echo(org_unit_levels)
-
-    asyncio.run(run_task())
 
 
 @cli.command()

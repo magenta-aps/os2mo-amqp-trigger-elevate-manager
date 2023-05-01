@@ -50,8 +50,13 @@ async def process_manager_event(
         logger.error("No employee was found in the manager object")
         return None
 
-    # Extracting manager objects.
-    manager_objects = one(one(manager_engagements.data.managers).objects)  # type: ignore
+    try:
+        # Extracting manager objects.
+        manager_objects = one(one(manager_engagements.data.managers).objects)  # type: ignore
+    except ValueError:
+        logger.error("No manager objects found")
+        return None
+
     # This should always return one employee.
     employee = one(manager_objects.employee)
 

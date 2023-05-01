@@ -17,7 +17,7 @@ from .models.get_org_unit_levels import GetOrgUnitLevels
 
 logger = structlog.get_logger()
 
-QUERY_FOR_GETTING_MANAGER_ENGAGEMENT = gql(
+QUERY_FOR_GETTING_MANAGER_ENGAGEMENTS = gql(
     """
      query GetManagerEngagement($manager_uuid: [UUID!]) {
       managers(uuids: $manager_uuid) {
@@ -160,7 +160,7 @@ async def get_org_unit_levels(
     return parse_obj_as(GetOrgUnitLevels, {"data": r})
 
 
-async def get_engagements_and_org_unit_uuids_for_manager(
+async def get_manager_engagements(
     gql_client: PersistentGraphQLClient, manager_uuid: UUID
 ) -> GetManagerEngagementUuids:
     """
@@ -175,7 +175,7 @@ async def get_engagements_and_org_unit_uuids_for_manager(
     """
 
     response = await gql_client.execute(
-        QUERY_FOR_GETTING_MANAGER_ENGAGEMENT,
+        QUERY_FOR_GETTING_MANAGER_ENGAGEMENTS,
         variable_values={"manager_uuid": str(manager_uuid)},
     )
 
@@ -238,18 +238,18 @@ async def terminate_existing_managers(
         )
 
 
-async def elevate_engagement(
+async def move_engagement(
     gql_client: PersistentGraphQLClient,
     org_unit_uuid: UUID,
     engagement_uuid: UUID,
 ):
     """
     The purpose of this function is to move an engagement to whichever
-    Organisation Unit a person has been made a manager of.
+    organisation unit a person has been made a manager of.
 
     Args:
         gql_client: The GraphQL client
-        org_unit_uuid: UUID of the Organisation Unit to transfer the manager to
+        org_unit_uuid: UUID of the organisation unit to transfer the manager to
         engagement_uuid: UUID of the engagement to be transfered.
     """
 

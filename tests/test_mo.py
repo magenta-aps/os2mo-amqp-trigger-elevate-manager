@@ -7,9 +7,9 @@ from uuid import uuid4
 import pytest
 from pydantic import parse_obj_as
 
-from elevate_manager.mo import elevate_engagement
 from elevate_manager.mo import get_existing_managers
 from elevate_manager.mo import get_org_unit_levels
+from elevate_manager.mo import move_engagement
 from elevate_manager.mo import MUTATION_FOR_TERMINATING_MANAGER
 from elevate_manager.mo import MUTATION_FOR_UPDATING_ENGAGEMENT
 from elevate_manager.mo import QUERY_FOR_GETTING_EXISTING_MANAGERS
@@ -279,7 +279,7 @@ async def test_elevate_engagements():
     mocked_gql_client.execute = mock_execute
 
     # ACT
-    await elevate_engagement(
+    await move_engagement(
         gql_client=mocked_gql_client,
         org_unit_uuid=org_unit_uuid,
         engagement_uuid=engagement_uuid,

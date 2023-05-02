@@ -68,7 +68,7 @@ repos:
         exclude: ^elevate_manager/models/
 
   - repo: https://github.com/magenta-aps/pre-commit-hooks
-    rev: c0e34679
+    rev: 477acf0d
     hooks:
       - id: auto-ticket-prepare-commit
       - id: auto-ticket-commit

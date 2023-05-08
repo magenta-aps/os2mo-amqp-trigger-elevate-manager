@@ -12,13 +12,13 @@ from pydantic import parse_obj_as
 from raclients.graph.client import PersistentGraphQLClient  # type: ignore
 
 from .models.get_existing_managers import GetExistingManagers
-from .models.get_manager_engagements_uuids import GetManagerEngagementUuids
+from .models.get_manager_engagements import GetManagerEngagements
 
 logger = structlog.get_logger()
 
 QUERY_FOR_GETTING_MANAGER_ENGAGEMENTS = gql(
     """
-     query GetManagerEngagement($manager_uuid: [UUID!]) {
+     query GetManagerEngagements($manager_uuid: [UUID!]) {
       managers(uuids: $manager_uuid) {
         objects {
           employee {
@@ -34,7 +34,7 @@ QUERY_FOR_GETTING_MANAGER_ENGAGEMENTS = gql(
 
 QUERY_FOR_GETTING_EXISTING_MANAGERS = gql(
     """
-    query ManagerEngagements ($uuids: [UUID!]) {
+    query GetManagers ($uuids: [UUID!]) {
       org_units(uuids: $uuids) {
         objects {
           name
@@ -100,7 +100,7 @@ def get_client(
 
 async def get_manager_engagements(
     gql_client: PersistentGraphQLClient, manager_uuid: UUID
-) -> GetManagerEngagementUuids:
+) -> GetManagerEngagements:
     """
     Get the engagement(s) and Organisation Units uuid(s) for the manager.
 
@@ -117,7 +117,7 @@ async def get_manager_engagements(
         variable_values={"manager_uuid": str(manager_uuid)},
     )
 
-    return parse_obj_as(GetManagerEngagementUuids, {"data": response})
+    return parse_obj_as(GetManagerEngagements, {"data": response})
 
 
 async def get_existing_managers(

@@ -7,11 +7,11 @@
 # (see https://github.com/quicktype/quicktype) via the command
 # $ quicktype --src-lang graphql --lang py --python-version 3.7 \
 #   --graphql-introspect https://moradev.magentahosted.dk/graphql/v3 \
-#   get_manager_engagements_org_unit_uuids.graphql --just-types
+#   get_manager_engagements.graphql --just-types
 #
-# where the content of the file get_manager_engagements_org_unit_uuids.graphql is
+# where the content of the file get_manager_engagements.graphql is
 #
-# query GetManagerEngagementsOrgUnitUuids {
+# query GetManagerEngagements {
 #   managers {
 #     objects {
 #       employee {
@@ -19,7 +19,6 @@
 #           uuid
 #         }
 #       }
-#       org_unit_uuid
 #     }
 #   }
 # }
@@ -59,6 +58,6 @@ class Error:
 
 
 @dataclass
-class GetManagerEngagementUuids:
+class GetManagerEngagements:
     data: Optional[Data] = None
     errors: Optional[List[Error]] = None

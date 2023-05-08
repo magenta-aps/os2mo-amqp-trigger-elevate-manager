@@ -30,9 +30,10 @@ async def listener(context: dict, payload: PayloadType, **kwargs: Any) -> None:
     ObjectType - manager
     RequestType - create/edit
 
-    We receive a payload, of type Payload, with content of:
-    Organisation Units uuid - payload.uuid
-    Manager uuid - payload.object_uuid
+    Args:
+        context: the FastRAMQPI context (containing e.g. a GraphQL client)
+        payload: containing the OU UUID (payload.uuid) and
+          manager UUID (payload.object_uuid)
     """
     gql_client = context["graphql_session"]
     await process_manager_event(gql_client, payload.object_uuid, payload.uuid)

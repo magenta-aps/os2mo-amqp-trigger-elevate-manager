@@ -11,14 +11,6 @@ from elevate_manager.models.get_manager_engagements_uuids import (
 )
 
 
-manager_no_objects: dict = {"managers": [{"objects": []}]}
-
-
-manager_no_engagements: dict = {
-    "managers": [{"objects": [{"employee": [{"engagements": []}]}]}]
-}
-
-
 @pytest.mark.asyncio
 @unittest.mock.patch("elevate_manager.events.get_manager_engagements")
 @unittest.mock.patch("elevate_manager.events.logger")
@@ -52,6 +44,7 @@ async def test_logger_logging_message_correct(
 async def test_no_objects_message_value(mock_events_logger, mock_get_managers_function):
     """Tests if logging message gets properly logged with correct error level."""
     # ARRANGE
+    manager_no_objects: dict = {"managers": [{"objects": []}]}
     expected_manager_response_with_no_engagement = parse_obj_as(
         GetManagerEngagementUuids, {"data": manager_no_objects}
     )
@@ -79,6 +72,9 @@ async def test_not_only_one_manager_object_message_value(
     mock_events_logger, mock_get_managers_function
 ):
     """Tests if logging message gets properly logged with correct error level."""
+    manager_no_engagements: dict = {
+        "managers": [{"objects": [{"employee": [{"engagements": []}]}]}]
+    }
     # ARRANGE
     expected_manager_response_with_no_engagement = parse_obj_as(
         GetManagerEngagementUuids, {"data": manager_no_engagements}

@@ -8,12 +8,18 @@ import pytest
 from pydantic import parse_obj_as
 
 from elevate_manager.mo import get_existing_managers
+from elevate_manager.mo import get_manager_engagements
 from elevate_manager.mo import move_engagement
 from elevate_manager.mo import MUTATION_FOR_TERMINATING_MANAGER
 from elevate_manager.mo import MUTATION_FOR_UPDATING_ENGAGEMENT
 from elevate_manager.mo import QUERY_FOR_GETTING_EXISTING_MANAGERS
+from elevate_manager.mo import QUERY_FOR_GETTING_MANAGER_ENGAGEMENTS
 from elevate_manager.mo import terminate_existing_managers
 from elevate_manager.models.get_existing_managers import GetExistingManagers
+from elevate_manager.models.get_manager_engagements_uuids import (
+    GetManagerEngagementUuids,
+)
+
 
 org_unit_level_response = {
     "managers": [
@@ -102,6 +108,49 @@ multiple_managers_response = {
         }
     ]
 }
+
+manager_one_engagement_response = {
+    "managers": [
+        {
+            "objects": [
+                {
+                    "employee": [
+                        {
+                            "engagements": [
+                                {"uuid": "fa5e2af6-ae28-4b6b-8895-3b7d39f93d54"}
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}
+
+
+@pytest.mark.asyncio
+async def test_get_manager_engagements():
+    """Tests if the GraphQL execute coroutine was awaited and that the response data
+    is parsed as we expect it in accordance with the models defined by QuickType."""
+    manager_uuid = uuid4()
+    mocked_gql_client = AsyncMock()
+
+    expected_managers = parse_obj_as(
+        GetManagerEngagementUuids, {"data": manager_one_engagement_response}
+    )
+
+    mock_execute = AsyncMock(return_value=manager_one_engagement_response)
+    mocked_gql_client.execute = mock_execute
+
+    actual_manager_response = await get_manager_engagements(
+        gql_client=mocked_gql_client, manager_uuid=manager_uuid
+    )
+
+    assert actual_manager_response == expected_managers
+    mock_execute.assert_awaited_once_with(
+        QUERY_FOR_GETTING_MANAGER_ENGAGEMENTS,
+        variable_values={"manager_uuid": str(manager_uuid)},
+    )
 
 
 @pytest.mark.asyncio

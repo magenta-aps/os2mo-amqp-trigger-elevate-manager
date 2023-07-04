@@ -6,12 +6,11 @@ import pytest
 from pydantic import parse_obj_as
 
 from elevate_manager.events import process_manager_event
+from elevate_manager.models.get_existing_managers import GetExistingManagers
 from elevate_manager.models.get_manager_engagements_uuids import Engagement
 from elevate_manager.models.get_manager_engagements_uuids import (
     GetManagerEngagementUuids,
 )
-
-# from elevate_manager.models.get_existing_managers import GetExistingManagers
 
 
 @pytest.mark.asyncio
@@ -118,4 +117,65 @@ async def test_process_manager_event_none_when_manager_does_not_have_one_engagem
     assert result is None
     mock_events_logger.error.assert_any_call(
         "Manager does not have exactly one engagement, and engagement can not be moved"
+    )
+
+
+@unittest.mock.patch("elevate_manager.events.terminate_existing_managers")
+@unittest.mock.patch("elevate_manager.events.get_existing_managers")
+@unittest.mock.patch("elevate_manager.events.get_manager_engagements")
+async def test_terminate_managers_when_existing_managers_present(
+    mock_get_manager_engagements: AsyncMock,
+    mock_get_existing_managers: AsyncMock,
+    mock_terminate_existing_managers: AsyncMock,
+):
+    """Test that any existing managers are terminated"""
+
+    # ARRANGE
+
+    graphql_manager_engagements = {
+        "data": {
+            "managers": [
+                {"objects": [{"employee": [{"engagements": [{"uuid": str(uuid4())}]}]}]}
+            ]
+        }
+    }
+    manager_engagements = parse_obj_as(
+        GetManagerEngagementUuids, graphql_manager_engagements
+    )
+    mock_get_manager_engagements.return_value = manager_engagements
+
+    graphql_existing_managers_resp = {
+        "data": {
+            "org_units": [
+                {
+                    "objects": [
+                        {
+                            "managers": [
+                                {"uuid": str(uuid4()), "user_key": "some manager 1"},
+                                {"uuid": str(uuid4()), "user_key": "some manager 2"},
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+    }
+    existing_managers = parse_obj_as(
+        GetExistingManagers, graphql_existing_managers_resp
+    )
+    mock_get_existing_managers.return_value = existing_managers
+
+    gql_client = AsyncMock()
+    manager_uuid = uuid4()
+
+    # ACT
+    await process_manager_event(
+        gql_client=gql_client,
+        manager_uuid=manager_uuid,
+        org_unit_uuid_of_manager=uuid4(),
+    )
+
+    # ASSERT
+    mock_terminate_existing_managers.assert_awaited_once_with(
+        gql_client, existing_managers, manager_uuid
     )

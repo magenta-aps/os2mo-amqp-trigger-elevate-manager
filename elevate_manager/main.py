@@ -20,11 +20,6 @@ fastapi_router = APIRouter()
 logger = structlog.get_logger(__name__)
 
 
-@fastapi_router.post("/dummy/test")
-async def dummy() -> dict[str, str]:
-    return {"foo": "bar"}
-
-
 @amqp_router.register("org_unit.manager.create")
 @amqp_router.register("org_unit.manager.edit")
 @sleep_on_error()

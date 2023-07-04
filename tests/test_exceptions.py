@@ -6,18 +6,26 @@ import pytest
 from pydantic import parse_obj_as
 
 from elevate_manager.events import process_manager_event
+from elevate_manager.models.get_manager_engagements_uuids import Engagement
 from elevate_manager.models.get_manager_engagements_uuids import (
     GetManagerEngagementUuids,
 )
+
+# from elevate_manager.models.get_existing_managers import GetExistingManagers
 
 
 @pytest.mark.asyncio
 @unittest.mock.patch("elevate_manager.events.get_manager_engagements")
 @unittest.mock.patch("elevate_manager.events.logger")
-async def test_logger_logging_message_correct(
+async def test_process_manager_event_none_when_no_engagements_found_in_manager_obj(
     mock_events_logger, mock_get_managers_function
 ):
-    """Tests if logging message gets properly logged with correct error level."""
+    """
+    Tests if:
+    1) process_manager_event returns None when no engagement found in
+       manager object.
+    2) logging message gets properly logged with correct error level.
+    """
     # ARRANGE
     manager_uuid = uuid4()
     org_unit_uuid = uuid4()
@@ -41,8 +49,15 @@ async def test_logger_logging_message_correct(
 @pytest.mark.asyncio
 @unittest.mock.patch("elevate_manager.events.get_manager_engagements")
 @unittest.mock.patch("elevate_manager.events.logger")
-async def test_no_objects_message_value(mock_events_logger, mock_get_managers_function):
-    """Tests if logging message gets properly logged with correct error level."""
+async def test_process_manager_event_none_when_no_manager_obj_found(
+    mock_events_logger, mock_get_managers_function
+):
+    """
+    Tests if:
+    1) process_manager_event returns None when no manager object found.
+    2) logging message gets properly logged with correct error level.
+    """
+
     # ARRANGE
     manager_no_objects: dict = {"managers": [{"objects": []}]}
     expected_manager_response_with_no_engagement = parse_obj_as(
@@ -66,14 +81,22 @@ async def test_no_objects_message_value(mock_events_logger, mock_get_managers_fu
 
 
 @pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "engagements", [[], [Engagement(uuid=str(uuid4())), Engagement(uuid=str(uuid4()))]]
+)
 @unittest.mock.patch("elevate_manager.events.get_manager_engagements")
 @unittest.mock.patch("elevate_manager.events.logger")
-async def test_not_only_one_manager_object_message_value(
-    mock_events_logger, mock_get_managers_function
+async def test_process_manager_event_none_when_manager_does_not_have_one_engagement(
+    mock_events_logger, mock_get_managers_function, engagements
 ):
-    """Tests if logging message gets properly logged with correct error level."""
+    """
+    Tests if:
+    1) process_manager_event returns None when manager does not have exactly
+       one engagement.
+    2) logging message gets properly logged with correct error level.
+    """
     manager_no_engagements: dict = {
-        "managers": [{"objects": [{"employee": [{"engagements": []}]}]}]
+        "managers": [{"objects": [{"employee": [{"engagements": engagements}]}]}]
     }
     # ARRANGE
     expected_manager_response_with_no_engagement = parse_obj_as(

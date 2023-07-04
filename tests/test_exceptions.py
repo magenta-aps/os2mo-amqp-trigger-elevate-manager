@@ -179,3 +179,61 @@ async def test_terminate_managers_when_existing_managers_present(
     mock_terminate_existing_managers.assert_awaited_once_with(
         gql_client, existing_managers, manager_uuid
     )
+
+
+@unittest.mock.patch("elevate_manager.events.move_engagement")
+@unittest.mock.patch("elevate_manager.events.get_existing_managers")
+@unittest.mock.patch("elevate_manager.events.get_manager_engagements")
+async def test_move_engagement(
+    mock_get_manager_engagements: AsyncMock,
+    mock_get_existing_managers: AsyncMock,
+    mock_move_engagement: AsyncMock,
+):
+    """Test that the new manager is moved"""
+
+    # ARRANGE
+    engagement_uuid = uuid4()
+
+    graphql_manager_engagements = {
+        "data": {
+            "managers": [
+                {
+                    "objects": [
+                        {
+                            "employee": [
+                                {"engagements": [{"uuid": str(engagement_uuid)}]}
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+    }
+    manager_engagements = parse_obj_as(
+        GetManagerEngagementUuids, graphql_manager_engagements
+    )
+    mock_get_manager_engagements.return_value = manager_engagements
+
+    graphql_existing_managers_resp: dict = {
+        "data": {"org_units": [{"objects": [{"managers": []}]}]}
+    }
+    existing_managers = parse_obj_as(
+        GetExistingManagers, graphql_existing_managers_resp
+    )
+    mock_get_existing_managers.return_value = existing_managers
+
+    gql_client = AsyncMock()
+    manager_uuid = uuid4()
+    org_unit_uuid_of_manager = uuid4()
+
+    # ACT
+    await process_manager_event(
+        gql_client=gql_client,
+        manager_uuid=manager_uuid,
+        org_unit_uuid_of_manager=org_unit_uuid_of_manager,
+    )
+
+    # ASSERT
+    mock_move_engagement.assert_awaited_once_with(
+        gql_client, org_unit_uuid_of_manager, engagement_uuid
+    )

@@ -98,11 +98,11 @@ repos:
         exclude: ^elevate_manager/models/
 
 
-  - repo: https://github.com/dosisod/refurb
-    rev: v1.15.0
-    hooks:
-      - id: refurb
-        exclude: ^elevate_manager/models/
+#  - repo: https://github.com/dosisod/refurb
+#    rev: v1.15.0
+#    hooks:
+#      - id: refurb
+#        exclude: ^elevate_manager/models/
 
   - repo: https://github.com/gruntwork-io/pre-commit
     rev: v0.1.19

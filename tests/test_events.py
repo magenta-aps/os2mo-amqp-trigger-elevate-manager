@@ -138,6 +138,7 @@ async def test_terminate_managers_when_existing_managers_present(
     """Test that any existing managers are terminated"""
 
     # ARRANGE
+    org_unit_uuid = uuid4()
 
     graphql_manager_engagements = {
         "data": {
@@ -146,7 +147,7 @@ async def test_terminate_managers_when_existing_managers_present(
                     "objects": [
                         {
                             "employee": [{"engagements": [{"uuid": str(uuid4())}]}],
-                            "org_unit_uuid": str(uuid4()),
+                            "org_unit_uuid": str(org_unit_uuid),
                         }
                     ]
                 }
@@ -189,7 +190,7 @@ async def test_terminate_managers_when_existing_managers_present(
     )
 
     # ASSERT
-    # TODO: mock_get_existing_managers await correctly
+    mock_get_existing_managers.assert_awaited_once_with(org_unit_uuid, gql_client)
     mock_terminate_existing_managers.assert_awaited_once_with(
         gql_client, existing_managers, manager_uuid
     )

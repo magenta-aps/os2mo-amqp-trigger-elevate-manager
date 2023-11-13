@@ -13,11 +13,11 @@ from elevate_manager.mo import move_engagement
 from elevate_manager.mo import MUTATION_FOR_TERMINATING_MANAGER
 from elevate_manager.mo import MUTATION_FOR_UPDATING_ENGAGEMENT
 from elevate_manager.mo import QUERY_FOR_GETTING_EXISTING_MANAGERS
-from elevate_manager.mo import QUERY_FOR_GETTING_MANAGER_ENGAGEMENTS
+from elevate_manager.mo import QUERY_FOR_GETTING_MANAGER_ENGAGEMENTS_AND_OU
 from elevate_manager.mo import terminate_existing_managers
 from elevate_manager.models.get_existing_managers import GetExistingManagers
 from elevate_manager.models.get_manager_engagements_uuids import (
-    GetManagerEngagementUuids,
+    GetManagerEngagementsOrgUnitUuids,
 )
 
 
@@ -120,7 +120,8 @@ manager_one_engagement_response = {
                                 {"uuid": "fa5e2af6-ae28-4b6b-8895-3b7d39f93d54"}
                             ]
                         }
-                    ]
+                    ],
+                    "org_unit_uuid": "5e5407f1-12d4-4bfa-a4e4-57b3068b1d6d",
                 }
             ]
         }
@@ -136,7 +137,7 @@ async def test_get_manager_engagements():
     mocked_gql_client = AsyncMock()
 
     expected_managers = parse_obj_as(
-        GetManagerEngagementUuids, {"data": manager_one_engagement_response}
+        GetManagerEngagementsOrgUnitUuids, {"data": manager_one_engagement_response}
     )
 
     mock_execute = AsyncMock(return_value=manager_one_engagement_response)
@@ -148,7 +149,7 @@ async def test_get_manager_engagements():
 
     assert actual_manager_response == expected_managers
     mock_execute.assert_awaited_once_with(
-        QUERY_FOR_GETTING_MANAGER_ENGAGEMENTS,
+        QUERY_FOR_GETTING_MANAGER_ENGAGEMENTS_AND_OU,
         variable_values={"manager_uuid": str(manager_uuid)},
     )
 

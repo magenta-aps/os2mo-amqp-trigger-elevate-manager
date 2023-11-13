@@ -1,3 +1,5 @@
+# SPDX-FileCopyrightText: 2022 Magenta ApS <https://magenta.dk>
+# SPDX-License-Identifier: MPL-2.0
 import unittest.mock
 from unittest.mock import AsyncMock
 from uuid import uuid4
@@ -9,7 +11,7 @@ from elevate_manager.events import process_manager_event
 from elevate_manager.models.get_existing_managers import GetExistingManagers
 from elevate_manager.models.get_manager_engagements_uuids import Engagement
 from elevate_manager.models.get_manager_engagements_uuids import (
-    GetManagerEngagementUuids,
+    GetManagerEngagementsOrgUnitUuids,
 )
 
 
@@ -27,7 +29,6 @@ async def test_process_manager_event_none_when_no_engagements_found_in_manager_o
     """
     # ARRANGE
     manager_uuid = uuid4()
-    org_unit_uuid = uuid4()
     mocked_gql_client = AsyncMock()
     mock_get_managers_function.side_effect = ValueError()
 
@@ -35,7 +36,6 @@ async def test_process_manager_event_none_when_no_engagements_found_in_manager_o
     result = await process_manager_event(
         gql_client=mocked_gql_client,
         manager_uuid=manager_uuid,
-        org_unit_uuid_of_manager=org_unit_uuid,
     )
 
     # ASSERT
@@ -60,7 +60,7 @@ async def test_process_manager_event_none_when_no_manager_obj_found(
     # ARRANGE
     manager_no_objects: dict = {"managers": [{"objects": []}]}
     expected_manager_response_with_no_engagement = parse_obj_as(
-        GetManagerEngagementUuids, {"data": manager_no_objects}
+        GetManagerEngagementsOrgUnitUuids, {"data": manager_no_objects}
     )
 
     mock_get_managers_function.return_value = (
@@ -71,7 +71,6 @@ async def test_process_manager_event_none_when_no_manager_obj_found(
     result = await process_manager_event(
         gql_client=AsyncMock(),
         manager_uuid=uuid4(),
-        org_unit_uuid_of_manager=uuid4(),
     )
 
     # ASSERT
@@ -95,11 +94,20 @@ async def test_process_manager_event_none_when_manager_does_not_have_one_engagem
     2) logging message gets properly logged with correct error level.
     """
     manager_no_engagements: dict = {
-        "managers": [{"objects": [{"employee": [{"engagements": engagements}]}]}]
+        "managers": [
+            {
+                "objects": [
+                    {
+                        "employee": [{"engagements": engagements}],
+                        "org_unit_uuid": str(uuid4()),
+                    }
+                ]
+            }
+        ]
     }
     # ARRANGE
     expected_manager_response_with_no_engagement = parse_obj_as(
-        GetManagerEngagementUuids, {"data": manager_no_engagements}
+        GetManagerEngagementsOrgUnitUuids, {"data": manager_no_engagements}
     )
 
     mock_get_managers_function.return_value = (
@@ -110,7 +118,6 @@ async def test_process_manager_event_none_when_manager_does_not_have_one_engagem
     result = await process_manager_event(
         gql_client=AsyncMock(),
         manager_uuid=uuid4(),
-        org_unit_uuid_of_manager=uuid4(),
     )
 
     # ASSERT
@@ -135,12 +142,19 @@ async def test_terminate_managers_when_existing_managers_present(
     graphql_manager_engagements = {
         "data": {
             "managers": [
-                {"objects": [{"employee": [{"engagements": [{"uuid": str(uuid4())}]}]}]}
+                {
+                    "objects": [
+                        {
+                            "employee": [{"engagements": [{"uuid": str(uuid4())}]}],
+                            "org_unit_uuid": str(uuid4()),
+                        }
+                    ]
+                }
             ]
         }
     }
     manager_engagements = parse_obj_as(
-        GetManagerEngagementUuids, graphql_manager_engagements
+        GetManagerEngagementsOrgUnitUuids, graphql_manager_engagements
     )
     mock_get_manager_engagements.return_value = manager_engagements
 
@@ -172,10 +186,10 @@ async def test_terminate_managers_when_existing_managers_present(
     await process_manager_event(
         gql_client=gql_client,
         manager_uuid=manager_uuid,
-        org_unit_uuid_of_manager=uuid4(),
     )
 
     # ASSERT
+    # TODO: mock_get_existing_managers await correctly
     mock_terminate_existing_managers.assert_awaited_once_with(
         gql_client, existing_managers, manager_uuid
     )
@@ -193,6 +207,8 @@ async def test_move_engagement(
 
     # ARRANGE
     engagement_uuid = uuid4()
+    manager_uuid = uuid4()
+    manager_ou_uuid = uuid4()
 
     graphql_manager_engagements = {
         "data": {
@@ -202,7 +218,8 @@ async def test_move_engagement(
                         {
                             "employee": [
                                 {"engagements": [{"uuid": str(engagement_uuid)}]}
-                            ]
+                            ],
+                            "org_unit_uuid": str(manager_ou_uuid),
                         }
                     ]
                 }
@@ -210,7 +227,7 @@ async def test_move_engagement(
         }
     }
     manager_engagements = parse_obj_as(
-        GetManagerEngagementUuids, graphql_manager_engagements
+        GetManagerEngagementsOrgUnitUuids, graphql_manager_engagements
     )
     mock_get_manager_engagements.return_value = manager_engagements
 
@@ -223,17 +240,14 @@ async def test_move_engagement(
     mock_get_existing_managers.return_value = existing_managers
 
     gql_client = AsyncMock()
-    manager_uuid = uuid4()
-    org_unit_uuid_of_manager = uuid4()
 
     # ACT
     await process_manager_event(
         gql_client=gql_client,
         manager_uuid=manager_uuid,
-        org_unit_uuid_of_manager=org_unit_uuid_of_manager,
     )
 
     # ASSERT
     mock_move_engagement.assert_awaited_once_with(
-        gql_client, org_unit_uuid_of_manager, engagement_uuid
+        gql_client, manager_ou_uuid, engagement_uuid
     )

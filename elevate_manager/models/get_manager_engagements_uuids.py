@@ -25,12 +25,12 @@
 # }
 
 from dataclasses import dataclass
-from typing import Optional, List
+from typing import List, Optional
 
 
 @dataclass
 class Engagement:
-    uuid: Optional[str] = None
+    uuid: str
 
 
 @dataclass
@@ -40,7 +40,8 @@ class Employee:
 
 @dataclass
 class Manager:
-    employee: List[Employee]
+    org_unit_uuid: str
+    employee: Optional[List[Employee]] = None
 
 
 @dataclass
@@ -59,6 +60,6 @@ class Error:
 
 
 @dataclass
-class GetManagerEngagementUuids:
+class GetManagerEngagementsOrgUnitUuids:
     data: Optional[Data] = None
     errors: Optional[List[Error]] = None

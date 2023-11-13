@@ -26,6 +26,7 @@ QUERY_FOR_GETTING_MANAGER_ENGAGEMENTS_AND_OU = gql(
               uuid
             }
           }
+          org_unit_uuid
         }
       }
     }

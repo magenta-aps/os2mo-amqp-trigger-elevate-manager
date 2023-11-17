@@ -25,5 +25,5 @@ async def test_listener(mock_process_manager_event: AsyncMock):
 
     # Assert
     mock_process_manager_event.assert_awaited_once_with(
-        mock_graphql_session, payload.object_uuid, payload.uuid
+        mock_graphql_session, payload.object_uuid
     )

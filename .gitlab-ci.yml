@@ -20,7 +20,7 @@ variables:
   POETRY_VERSION: "1.4.1"
 
   PRODUCT: os2mo
-  COMPONENT: elevate_manager
+  COMPONENT: elevate-manager
 
 
 

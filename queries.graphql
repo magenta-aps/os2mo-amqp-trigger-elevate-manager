@@ -1,0 +1,40 @@
+query ManagerEngagements($manager_uuid: [UUID!]) {
+    managers(filter: {uuids: $manager_uuid}) {
+        objects {
+            current {
+                employee {
+                    engagements {
+                    uuid
+                    }
+                }
+                org_unit_uuid
+            }
+        }
+    }
+}
+
+query OrgUnitManagers ($uuids: [UUID!]) {
+    org_units(filter: {uuids: $uuids}) {
+        objects {
+            current {
+                name
+                uuid
+                managers {
+                    uuid
+                }
+            }
+        }
+    }
+}
+
+mutation TerminateManager($input: ManagerTerminateInput!) {
+    manager_terminate(input: $input) {
+        uuid
+    }
+}
+
+mutation MoveEngagement($input: EngagementUpdateInput!) {
+    engagement_update(input: $input) {
+        uuid
+    }
+}

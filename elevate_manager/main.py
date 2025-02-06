@@ -6,9 +6,8 @@ import structlog
 from fastapi import APIRouter
 from fastapi import FastAPI
 from fastramqpi.main import FastRAMQPI  # type: ignore
-from ramqp.mo import MORouter  # type: ignore
-from ramqp.mo.models import PayloadType  # type: ignore
-from ramqp.utils import sleep_on_error  # type: ignore
+from fastramqpi.ramqp.mo import MORouter  # type: ignore
+from fastramqpi.ramqp.mo import PayloadType  # type: ignore
 
 from .config import get_settings
 from .events import process_manager_event
@@ -22,8 +21,8 @@ logger = structlog.get_logger(__name__)
 
 @amqp_router.register("org_unit.manager.create")
 @amqp_router.register("org_unit.manager.edit")
-@sleep_on_error()
 async def listener(context: dict, payload: PayloadType, **kwargs: Any) -> None:
+    # NOTE: Removed `sleep_on_error`, is some kind of sleep/ratelimit needed?
     """
     This function listens on changes made to:
     ServiceType - org_unit

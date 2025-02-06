@@ -7,7 +7,7 @@ from unittest.mock import patch
 from uuid import uuid4
 
 import pytest
-from ramqp.mo.models import PayloadType  # type: ignore
+from fastramqpi.ramqp.mo import PayloadType
 
 from elevate_manager.main import listener
 

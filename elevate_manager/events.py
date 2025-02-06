@@ -46,18 +46,18 @@ async def process_manager_event(
 
     try:
         # Extracting manager objects.
-        manager_objects = one(one(manager_engagements.data.managers).objects)  # type: ignore
+        manager_objects = one(manager_engagements["managers"]["objects"])["current"]  # type: ignore
     except ValueError:
         logger.error("No manager objects found")
         return None
 
     # This should always return one employee.
-    employee = one(manager_objects.employee)
-    manager_ou_uuid = UUID(manager_objects.org_unit_uuid)
+    employee = one(manager_objects["employee"])
+    manager_ou_uuid = UUID(manager_objects["org_unit_uuid"])
 
     # Trying to handle the possibility of multiple engagements attached to the manager.
     try:
-        employee_engagement = one(employee.engagements)
+        employee_engagement = one(employee["engagements"])
 
     # Return None gracefully, since we, as of now, do not know which engagement to change.
     except ValueError:
@@ -66,7 +66,7 @@ async def process_manager_event(
         )
         return None
     # Uuid of engagement to move to the managers new organisation unit.
-    engagement_uuid_to_be_moved = UUID(employee_engagement.uuid)
+    engagement_uuid_to_be_moved = UUID(employee_engagement["uuid"])
 
     logger.info(
         "Moving manager engagement and terminate old manager(s)",

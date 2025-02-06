@@ -58,13 +58,10 @@ async def test_process_manager_event_none_when_no_manager_obj_found(
     """
 
     # ARRANGE
-    manager_no_objects: dict = {"managers": [{"objects": []}]}
-    expected_manager_response_with_no_engagement = parse_obj_as(
-        GetManagerEngagementsOrgUnitUuids, {"data": manager_no_objects}
-    )
-
+    manager_no_objects: dict = {"managers": {"objects": []}}
+    
     mock_get_managers_function.return_value = (
-        expected_manager_response_with_no_engagement
+        manager_no_objects
     )
 
     # ACT
@@ -94,25 +91,18 @@ async def test_process_manager_event_none_when_manager_does_not_have_one_engagem
     2) logging message gets properly logged with correct error level.
     """
     manager_no_engagements: dict = {
-        "managers": [
-            {
-                "objects": [
-                    {
+        "managers": {
+            "objects": [
+                {
+                    "current": {
                         "employee": [{"engagements": engagements}],
                         "org_unit_uuid": str(uuid4()),
                     }
-                ]
-            }
-        ]
+                }
+            ]
+        }
     }
-    # ARRANGE
-    expected_manager_response_with_no_engagement = parse_obj_as(
-        GetManagerEngagementsOrgUnitUuids, {"data": manager_no_engagements}
-    )
-
-    mock_get_managers_function.return_value = (
-        expected_manager_response_with_no_engagement
-    )
+    mock_get_managers_function.return_value = manager_no_engagements
 
     # ACT
     result = await process_manager_event(
@@ -141,44 +131,36 @@ async def test_terminate_managers_when_existing_managers_present(
     org_unit_uuid = uuid4()
 
     graphql_manager_engagements = {
-        "data": {
-            "managers": [
-                {
-                    "objects": [
-                        {
+        "managers": 
+            {
+                "objects": [
+                    {
+                        "current": {
                             "employee": [{"engagements": [{"uuid": str(uuid4())}]}],
                             "org_unit_uuid": str(org_unit_uuid),
                         }
-                    ]
-                }
-            ]
+                    }
+                ]
+            }
         }
-    }
-    manager_engagements = parse_obj_as(
-        GetManagerEngagementsOrgUnitUuids, graphql_manager_engagements
-    )
-    mock_get_manager_engagements.return_value = manager_engagements
+    mock_get_manager_engagements.return_value = graphql_manager_engagements
 
     graphql_existing_managers_resp = {
-        "data": {
-            "org_units": [
+        "org_units": {
+            "objects": [
                 {
-                    "objects": [
-                        {
-                            "managers": [
-                                {"uuid": str(uuid4()), "user_key": "some manager 1"},
-                                {"uuid": str(uuid4()), "user_key": "some manager 2"},
-                            ]
-                        }
-                    ]
+                    "current": {
+                        "managers": [
+                            {"uuid": str(uuid4()), "user_key": "some manager 1"},
+                            {"uuid": str(uuid4()), "user_key": "some manager 2"},
+                        ]      
+                    }
                 }
             ]
         }
     }
-    existing_managers = parse_obj_as(
-        GetExistingManagers, graphql_existing_managers_resp
-    )
-    mock_get_existing_managers.return_value = existing_managers
+
+    mock_get_existing_managers.return_value = graphql_existing_managers_resp
 
     gql_client = AsyncMock()
     manager_uuid = uuid4()
@@ -192,7 +174,7 @@ async def test_terminate_managers_when_existing_managers_present(
     # ASSERT
     mock_get_existing_managers.assert_awaited_once_with(org_unit_uuid, gql_client)
     mock_terminate_existing_managers.assert_awaited_once_with(
-        gql_client, existing_managers, manager_uuid
+        gql_client, graphql_existing_managers_resp, manager_uuid
     )
 
 
@@ -211,34 +193,27 @@ async def test_move_engagement(
     manager_uuid = uuid4()
     manager_ou_uuid = uuid4()
 
+    # HERE
     graphql_manager_engagements = {
-        "data": {
-            "managers": [
+        "managers": {
+            "objects": [
                 {
-                    "objects": [
-                        {
-                            "employee": [
-                                {"engagements": [{"uuid": str(engagement_uuid)}]}
-                            ],
-                            "org_unit_uuid": str(manager_ou_uuid),
-                        }
-                    ]
+                    "current": {
+                        "employee": [
+                            {"engagements": [{"uuid": str(engagement_uuid)}]}
+                        ],
+                        "org_unit_uuid": str(manager_ou_uuid),
+                    }
                 }
             ]
         }
     }
-    manager_engagements = parse_obj_as(
-        GetManagerEngagementsOrgUnitUuids, graphql_manager_engagements
-    )
-    mock_get_manager_engagements.return_value = manager_engagements
+    mock_get_manager_engagements.return_value = graphql_manager_engagements
 
     graphql_existing_managers_resp: dict = {
-        "data": {"org_units": [{"objects": [{"managers": []}]}]}
+        "org_units": {"objects": [{ "current": {"managers": []}}]}
     }
-    existing_managers = parse_obj_as(
-        GetExistingManagers, graphql_existing_managers_resp
-    )
-    mock_get_existing_managers.return_value = existing_managers
+    mock_get_existing_managers.return_value = graphql_existing_managers_resp
 
     gql_client = AsyncMock()
 

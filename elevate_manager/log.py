@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: MPL-2.0
 import logging
 
-import structlog
+import structlog  # type: ignore
 
 
 def setup_logging(log_level_name: str) -> None:

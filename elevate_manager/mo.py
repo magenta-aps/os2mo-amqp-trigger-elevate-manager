@@ -5,7 +5,6 @@ import datetime
 from uuid import UUID
 
 import structlog
-from gql import gql  # type: ignore
 from more_itertools import one
 from pydantic import AnyHttpUrl
 from pydantic import parse_obj_as

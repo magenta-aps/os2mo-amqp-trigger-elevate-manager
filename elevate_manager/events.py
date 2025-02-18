@@ -46,9 +46,17 @@ async def process_manager_event(
 
     try:
         # Extracting manager objects.
-        manager_objects = one(manager_engagements.objects).current  # type: ignore
+        manager_objects = one(manager_engagements.objects).current
     except ValueError:
         logger.error("No manager objects found")
+        return None
+
+    if manager_objects is None:
+        logger.error("No current manager object found")
+        return None
+
+    if manager_objects.employee is None:
+        logger.error("No employee object found")
         return None
 
     # This should always return one employee.

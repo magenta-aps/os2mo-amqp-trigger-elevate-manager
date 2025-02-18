@@ -1,6 +1,9 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 
-.idea
+.cache
 .hypothesis
+.idea
 **/*__pycache__
+.venv
+venv

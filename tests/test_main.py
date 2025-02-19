@@ -2,12 +2,11 @@
 # SPDX-License-Identifier: MPL-2.0
 from datetime import datetime
 from unittest.mock import AsyncMock
-from unittest.mock import MagicMock
 from unittest.mock import patch
 from uuid import uuid4
 
 import pytest
-from ramqp.mo.models import PayloadType  # type: ignore
+from fastramqpi.ramqp.mo import PayloadType
 
 from elevate_manager.main import listener
 
@@ -17,13 +16,11 @@ from elevate_manager.main import listener
 async def test_listener(mock_process_manager_event: AsyncMock):
     # Arrange
     payload = PayloadType(uuid=uuid4(), object_uuid=uuid4(), time=datetime(2000, 1, 1))
-    mock_graphql_session = MagicMock()
-    context = {"graphql_session": mock_graphql_session}
 
     # Act
-    await listener(context, payload)
+    await listener(mock_process_manager_event, payload, None)
 
     # Assert
     mock_process_manager_event.assert_awaited_once_with(
-        mock_graphql_session, payload.object_uuid
+        mock_process_manager_event, payload.object_uuid
     )

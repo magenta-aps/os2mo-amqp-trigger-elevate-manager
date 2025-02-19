@@ -5,10 +5,13 @@ services:
   elevator:
     build: .
     command: ["uvicorn", "--factory", "app.main:create_app", "--host", "0.0.0.0", "--reload"]
-    env_file:
-      - dev-environment/elevator.env
     environment:
       LOG_LEVEL: DEBUG
+      FASTRAMQPI__AMQP__URL: "amqp://guest:guest@msg-broker:5672/"
+      FASTRAMQPI__MO_URL: "http://mo:5000"
+      FASTRAMQPI__AUTH_SERVER: "http://keycloak:8080/auth"
+      FASTRAMQPI__CLIENT_ID: "dipex"
+      FASTRAMQPI__CLIENT_SECRET: "603f1c82-d012-4d04-9382-dbe659c533fb"
     networks:
       - os2mo_default
     volumes:

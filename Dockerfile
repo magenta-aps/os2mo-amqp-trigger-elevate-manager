@@ -1,13 +1,13 @@
-# SPDX-FileCopyrightText: Magenta ApS
-#
+# SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-
 FROM python:3.11
 
+WORKDIR /app
+
 ENV PYTHONUNBUFFERED=1 \
-    PYTHONDONTWRITEBYTECODE=1 \
     PIP_DISABLE_PIP_VERSION_CHECK=on \
-    POETRY_VERSION="1.4.1" \
+    PYTHONDONTWRITEBYTECODE=1 \
+    POETRY_VERSION="1.8" \
     POETRY_HOME=/opt/poetry \
     VIRTUAL_ENV="/venv"
 ENV PATH="$VIRTUAL_ENV/bin:$POETRY_HOME/bin:$PATH"
@@ -17,19 +17,16 @@ RUN python -m venv $POETRY_HOME \
     && pip install --no-cache-dir poetry==${POETRY_VERSION}
 
 # Install project in another isolated environment
-WORKDIR /opt
 RUN python -m venv $VIRTUAL_ENV
-COPY poetry.lock pyproject.toml ./
-RUN poetry install --no-root --only=main
+COPY pyproject.toml poetry.lock* ./
+RUN poetry install --no-root
 
-WORKDIR /opt/app
-COPY elevate_manager .
-WORKDIR /opt/
+COPY elevate_manager ./elevate_manager
 
-CMD [ "uvicorn", "--factory", "app.main:create_app", "--host", "0.0.0.0" ]
+CMD ["uvicorn", "--factory", "elevate_manager.main:create_app", "--host", "0.0.0.0"]
 
 # Add build version to the environment last to avoid build cache misses
-#ARG COMMIT_TAG
-#ARG COMMIT_SHA
-#ENV COMMIT_TAG=${COMMIT_TAG:-HEAD} \
-#    COMMIT_SHA=${COMMIT_SHA}
+ARG COMMIT_TAG
+ARG COMMIT_SHA
+ENV COMMIT_TAG=${COMMIT_TAG:-HEAD} \
+    COMMIT_SHA=${COMMIT_SHA}

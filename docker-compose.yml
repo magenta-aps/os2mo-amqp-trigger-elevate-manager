@@ -1,12 +1,13 @@
 # SPDX-FileCopyrightText: 2022 Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-version: "3.9"
 services:
   elevator:
     build: .
-    command: ["uvicorn", "--factory", "app.main:create_app", "--host", "0.0.0.0", "--reload"]
+    command: ["uvicorn", "--factory", "elevate_manager.main:create_app", "--host", "0.0.0.0", "--reload"]
     environment:
-      LOG_LEVEL: DEBUG
+      FASTRAMQPI__LOG_LEVEL: "INFO"
+      FASTRAMQPI__JSON_LOGS: False
+
       FASTRAMQPI__AMQP__URL: "amqp://guest:guest@msg-broker:5672/"
       FASTRAMQPI__MO_URL: "http://mo:5000"
       FASTRAMQPI__AUTH_SERVER: "http://keycloak:8080/auth"
@@ -15,9 +16,10 @@ services:
     networks:
       - os2mo_default
     volumes:
-      - ./elevate_manager:/opt/app/
+      - ./elevate_manager:/app/elevate_manager/:ro
+      - ./tests/:/app/tests/:ro
     ports:
-      - "8100:8000"
+      - "127.0.0.1:8100:8000"
 
 networks:
   os2mo_default:
